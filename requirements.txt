@@ -1,0 +1,4 @@
+websockets>=13,<18
+pillow>=10
+huggingface_hub>=0.24
+tzdata

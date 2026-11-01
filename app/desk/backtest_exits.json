@@ -1,0 +1,254 @@
+{
+ "generated": 1793520193,
+ "days": 14,
+ "coins": 13,
+ "events": 1008,
+ "delay_pen": 0.00044551561631989145,
+ "drift_samples": 27,
+ "sol": 95.45,
+ "compare": [
+  {
+   "rule": "mirror",
+   "desc": "mirror his sells only",
+   "start": 100.0,
+   "final": 522.08,
+   "pnl": 422.08,
+   "x": 5.221,
+   "trades": 15,
+   "winRate": 0.533,
+   "pf": 51.1,
+   "maxDD": 0.122,
+   "put": 194.86,
+   "exits": {
+    "mirror sell": 21,
+    "open at end (today's price)": 7
+   },
+   "params": {
+    "rule": "mirror",
+    "desc": "mirror his sells only",
+    "mode": "mirror",
+    "sl": 1,
+    "tp": 0,
+    "tpfrac": 0,
+    "trail": 0,
+    "maxhold": 1000000000.0
+   }
+  },
+  {
+   "rule": "hybrid-40/2x/30",
+   "desc": "mirror + SL -40%, sell 50% at 2x, trail 30%, max 6h",
+   "start": 100.0,
+   "final": 343.25,
+   "pnl": 243.25,
+   "x": 3.433,
+   "trades": 18,
+   "winRate": 0.556,
+   "pf": 11.84,
+   "maxDD": 0.134,
+   "put": 220.5,
+   "exits": {
+    "take profit": 5,
+    "trailing stop": 4,
+    "mirror sell": 8,
+    "stop loss": 2,
+    "max hold": 3,
+    "open at end (today's price)": 3
+   },
+   "params": {
+    "rule": "hybrid-40/2x/30",
+    "desc": "mirror + SL -40%, sell 50% at 2x, trail 30%, max 6h",
+    "mode": "hybrid",
+    "sl": 0.4,
+    "tp": 2.0,
+    "tpfrac": 0.5,
+    "trail": 0.3,
+    "maxhold": 360
+   }
+  },
+  {
+   "rule": "hybrid-30/2x/25",
+   "desc": "mirror + SL -30%, 50% at 2x, trail 25%, max 6h",
+   "start": 100.0,
+   "final": 348.58,
+   "pnl": 248.58,
+   "x": 3.486,
+   "trades": 18,
+   "winRate": 0.556,
+   "pf": 13.49,
+   "maxDD": 0.122,
+   "put": 220.5,
+   "exits": {
+    "take profit": 5,
+    "trailing stop": 4,
+    "mirror sell": 8,
+    "stop loss": 2,
+    "max hold": 3,
+    "open at end (today's price)": 3
+   },
+   "params": {
+    "rule": "hybrid-30/2x/25",
+    "desc": "mirror + SL -30%, 50% at 2x, trail 25%, max 6h",
+    "mode": "hybrid",
+    "sl": 0.3,
+    "tp": 2.0,
+    "tpfrac": 0.5,
+    "trail": 0.25,
+    "maxhold": 360
+   }
+  },
+  {
+   "rule": "hybrid-50/2x/40",
+   "desc": "mirror + SL -50%, 50% at 2x, trail 40%, max 12h",
+   "start": 100.0,
+   "final": 403.44,
+   "pnl": 303.44,
+   "x": 4.034,
+   "trades": 16,
+   "winRate": 0.625,
+   "pf": 45.24,
+   "maxDD": 0.121,
+   "put": 222.5,
+   "exits": {
+    "take profit": 3,
+    "trailing stop": 2,
+    "mirror sell": 19,
+    "max hold": 4,
+    "open at end (today's price)": 3
+   },
+   "params": {
+    "rule": "hybrid-50/2x/40",
+    "desc": "mirror + SL -50%, 50% at 2x, trail 40%, max 12h",
+    "mode": "hybrid",
+    "sl": 0.5,
+    "tp": 2.0,
+    "tpfrac": 0.5,
+    "trail": 0.4,
+    "maxhold": 720
+   }
+  },
+  {
+   "rule": "hybrid-40/1.5x/30",
+   "desc": "mirror + SL -40%, 50% at 1.5x, trail 30%, max 6h",
+   "start": 100.0,
+   "final": 338.86,
+   "pnl": 238.86,
+   "x": 3.389,
+   "trades": 18,
+   "winRate": 0.611,
+   "pf": 11.9,
+   "maxDD": 0.124,
+   "put": 220.5,
+   "exits": {
+    "take profit": 7,
+    "trailing stop": 6,
+    "mirror sell": 8,
+    "stop loss": 2,
+    "max hold": 1,
+    "open at end (today's price)": 3
+   },
+   "params": {
+    "rule": "hybrid-40/1.5x/30",
+    "desc": "mirror + SL -40%, 50% at 1.5x, trail 30%, max 6h",
+    "mode": "hybrid",
+    "sl": 0.4,
+    "tp": 1.5,
+    "tpfrac": 0.5,
+    "trail": 0.3,
+    "maxhold": 360
+   }
+  },
+  {
+   "rule": "hybrid-SL40",
+   "desc": "mirror + SL -40% only",
+   "start": 100.0,
+   "final": 503.33,
+   "pnl": 403.33,
+   "x": 5.033,
+   "trades": 17,
+   "winRate": 0.471,
+   "pf": 17.79,
+   "maxDD": 0.151,
+   "put": 215.78,
+   "exits": {
+    "mirror sell": 21,
+    "stop loss": 2,
+    "open at end (today's price)": 7
+   },
+   "params": {
+    "rule": "hybrid-SL40",
+    "desc": "mirror + SL -40% only",
+    "mode": "hybrid",
+    "sl": 0.4,
+    "tp": 0,
+    "tpfrac": 0,
+    "trail": 0,
+    "maxhold": 1000000000.0
+   }
+  },
+  {
+   "rule": "risk-40/2x/30",
+   "desc": "ignore his sells; SL -40%, 50% at 2x, trail 30%, max 6h",
+   "start": 100.0,
+   "final": 357.14,
+   "pnl": 257.14,
+   "x": 3.571,
+   "trades": 17,
+   "winRate": 0.588,
+   "pf": 11.98,
+   "maxDD": 0.135,
+   "put": 215.5,
+   "exits": {
+    "take profit": 5,
+    "trailing stop": 4,
+    "max hold": 7,
+    "stop loss": 2,
+    "open at end (today's price)": 4
+   },
+   "params": {
+    "rule": "risk-40/2x/30",
+    "desc": "ignore his sells; SL -40%, 50% at 2x, trail 30%, max 6h",
+    "mode": "risk",
+    "sl": 0.4,
+    "tp": 2.0,
+    "tpfrac": 0.5,
+    "trail": 0.3,
+    "maxhold": 360
+   }
+  },
+  {
+   "rule": "risk-25/1.5x/20",
+   "desc": "ignore his sells; SL -25%, 50% at 1.5x, trail 20%, max 3h",
+   "start": 100.0,
+   "final": 356.19,
+   "pnl": 256.19,
+   "x": 3.562,
+   "trades": 17,
+   "winRate": 0.647,
+   "pf": 11.85,
+   "maxDD": 0.105,
+   "put": 215.5,
+   "exits": {
+    "take profit": 6,
+    "trailing stop": 5,
+    "max hold": 6,
+    "stop loss": 3,
+    "open at end (today's price)": 3
+   },
+   "params": {
+    "rule": "risk-25/1.5x/20",
+    "desc": "ignore his sells; SL -25%, 50% at 1.5x, trail 20%, max 3h",
+    "mode": "risk",
+    "sl": 0.25,
+    "tp": 1.5,
+    "tpfrac": 0.5,
+    "trail": 0.2,
+    "maxhold": 180
+   }
+  }
+ ],
+ "chosen": "hybrid-SL40",
+ "entered": 15,
+ "noCandles": 1,
+ "unitDropped": 1,
+ "chosenWhy": "mirror his sells + a -40% catastrophe stop. Pure mirror scored slightly higher ($522 vs $503) on only ~15 in-sample coins (these wallets were picked as top traders of these same winners), so we keep a stop against rugs"
+}
