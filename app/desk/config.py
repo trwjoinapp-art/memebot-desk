@@ -83,3 +83,21 @@ if MIRROR:
 else:
     MIRROR_TICKET_CORE = MIRROR_TICKET_SCOUT = 0; MIRROR_MAX_HOLD_H = 0; MIRROR_NOQUOTE_MIN = 0
 DROP_WALLETS = ["7aMgK5L4qEQ8Nyv6ZzhZi2B82NSSRnwb2NGJnNagA46D"]   # dropped from the shortlist at 3:14 (parent); not watched
+# ---- v5 HYPE SNIPER (Mohamed, Nov 1 2026): second PAPER strategy with its own $100. Finds fresh launches with real social/trading
+# hype from free feeds (pump.fun, Jupiter tokens v2, DexScreener, Solana Tracker, fxtwitter) and enters only if score + safety gates pass.
+# Any key can be overridden without a redeploy in desk/hype_cfg.json (same key names).
+HYPE = dict(
+    start_usd=100.0, ticket_usd=10.0, max_open=5,
+    tp_mult=2.0, tp_frac=0.5, trail_pct=30, stop_pct=35, max_hold_h=6, noquote_min=20,
+    min_score=55,                      # enter at >= this (0-100) when every gate passes
+    max_age_h=12, min_age_s=60,        # hype window: coin must be 1 min to 12 h old
+    min_traders_5m=15, min_mcap=8_000, max_mcap=5_000_000, min_liq=4_000,
+    max_top10_pct=45, max_top1_pct=12, max_dev_pct=10, max_roundtrip_loss_pct=25,
+    copycat_ratio=1.2,                 # another coin with the same ticker / same tweet and >=1.2x our mcap = we are the copycat
+    st_every_min=30,                   # Solana Tracker trending (free plan: 2.5k credits/mo) -> ~1.4k/mo
+    # accounts whose tweets spawn meme coins: a coin that links one of their tweets (or IS their account) gets +15
+    hype_handles=["elonmusk", "cb_doge", "DogeDesigner", "realDonaldTrump", "WatcherGuru", "MarioNawfal", "unusual_whales",
+                  "pumpdotfun", "a1lon9", "aeyakovenko", "blknoiz06", "solana", "binance", "cz_binance", "saylor", "VitalikButerin"],
+    # words in name/symbol/description that get +10 (edit freely); hot metas are also detected automatically from launch names
+    hype_keywords=["elon", "trump", "doge", "pepe", "grok", "xai", "ai agent", "cat", "frog", "penguin"],
+)

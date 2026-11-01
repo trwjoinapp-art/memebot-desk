@@ -47,10 +47,10 @@ button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:poin
 @keyframes ecg{0%{stroke-dashoffset:40}60%{stroke-dashoffset:0}100%{stroke-dashoffset:-40}}
 @keyframes beat{30%{transform:scale(1.6)}}@keyframes ring{0%{opacity:.9;transform:scale(.4)}100%{opacity:0;transform:scale(1.8)}}
 /* tabs */
-.tabs{position:relative;display:grid;grid-template-columns:repeat(4,1fr);margin-top:10px;padding:4px;border-radius:16px;background:rgba(255,255,255,.045);border:1px solid var(--line);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
-.tabs button{position:relative;z-index:1;height:34px;border-radius:12px;font-size:13px;font-weight:600;color:var(--dim);transition:color .3s;display:flex;align-items:center;justify-content:center;gap:5px}
+.tabs{position:relative;display:grid;grid-template-columns:repeat(5,1fr);margin-top:10px;padding:4px;border-radius:16px;background:rgba(255,255,255,.045);border:1px solid var(--line);-webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px)}
+.tabs button{position:relative;z-index:1;height:34px;border-radius:12px;font-size:12.5px;font-weight:600;color:var(--dim);transition:color .3s;display:flex;align-items:center;justify-content:center;gap:5px}
 .tabs button.on{color:var(--ink)}
-.tabs .ind{position:absolute;z-index:0;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/4);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 18px rgba(0,0,0,.25);transition:transform .5s var(--ease)}
+.tabs .ind{position:absolute;z-index:0;top:4px;bottom:4px;left:4px;width:calc((100% - 8px)/5);border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,.07));box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 18px rgba(0,0,0,.25);transition:transform .5s var(--ease)}
 .cnt{min-width:17px;height:17px;padding:0 5px;border-radius:9px;background:var(--accb);color:var(--acc);font-size:10.5px;display:inline-grid;place-items:center}
 .cnt:empty{display:none}.cnt.bump{animation:bump .6s var(--ease)}
 @keyframes bump{40%{transform:scale(1.35)}}
@@ -195,6 +195,28 @@ footer .pp{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;borde
 .arch{padding:13px 14px;border-radius:18px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--dim)}
 .arch b{color:var(--ink)}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* hype sniper */
+.hhero{padding:18px 18px 14px;overflow:hidden}
+.hhero::before{content:"";position:absolute;inset:-40% -20% auto auto;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(255,170,90,.22),transparent 65%);animation:hglow 6s ease-in-out infinite alternate;pointer-events:none}
+@keyframes hglow{to{transform:translate(-40px,30px) scale(1.2);opacity:.6}}
+.hspark{display:block;width:100%;height:70px;margin-top:12px;overflow:visible}
+.feeds{display:flex;flex-wrap:wrap;gap:5px;margin-top:12px}
+.feeds .chip i{width:6px;height:6px;border-radius:50%;background:var(--up);box-shadow:0 0 6px var(--up)}.feeds .chip.dn i{background:var(--dn);box-shadow:0 0 6px var(--dn);animation:blink 1.4s infinite}
+.sring{--p:0;flex-shrink:0;width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:conic-gradient(var(--rc,var(--acc)) calc(var(--p)*1%),rgba(255,255,255,.08) 0);transition:--p 1s;position:relative}
+.sring::before{content:"";position:absolute;inset:4px;border-radius:50%;background:#141a33}
+.sring b{position:relative;font-size:14px;font-weight:700}
+.sring.hot{animation:hotp 2s ease-in-out infinite}@keyframes hotp{50%{box-shadow:0 0 22px -2px var(--rc,var(--acc))}}
+.cbars{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:10px}
+.cbars div{font-size:9.5px;color:var(--faint);text-transform:capitalize}
+.cbars s{display:block;height:4px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:3px;overflow:hidden;text-decoration:none}
+.cbars s u{display:block;height:100%;border-radius:4px;transition:width 1s var(--ease)}
+.bd{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}.bd .chip{font-size:10px;padding:1px 6px}
+.lnk{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}.lnk a{font-size:11px;font-weight:600;color:var(--aqua);padding:3px 8px;border-radius:8px;background:var(--aquab)}
+.cand{padding:12px 13px;border-radius:18px;margin-bottom:9px}
+.dec{display:flex;gap:10px;align-items:flex-start;padding:11px 13px;border-radius:18px;margin-bottom:8px}
+.dec .why{font-size:12px;color:var(--dim);margin-top:3px;line-height:1.4}
+.dec time{font-size:11px;color:var(--faint);white-space:nowrap;margin-left:auto;padding-left:6px}
+.dec.ent{box-shadow:inset 0 0 0 1px rgba(124,239,196,.35)}
 @media (min-width:600px){.wrap{padding-top:10px}.bal{font-size:54px}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}.sky i{animation:none!important}}
 </style></head>
@@ -213,6 +235,7 @@ footer .pp{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;borde
    <button data-t="hist">History <span class="cnt" id="cHist"></span></button>
    <button data-t="desk">Desk <span class="cnt" id="cDesk"></span></button>
    <button data-t="log">Activity <span class="cnt" id="cLog"></span></button>
+   <button data-t="hype">Hype <span class="cnt" id="cHype"></span></button>
   </nav>
  </header>
 
@@ -259,6 +282,23 @@ footer .pp{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;borde
   <div class="list" id="sk"></div>
   <div id="skEmpty"></div>
   <div class="sec" id="archWrap" style="display:none"><div class="sh"><h2>Archive</h2></div><div id="arch"></div></div>
+ </section>
+
+ <section class="panel" id="p-hype">
+  <div class="card hhero" id="hHero">
+   <div class="lbl">Hype sniper · own paper balance</div>
+   <div class="bal" id="hBal">$—</div>
+   <div class="pl"><span class="pill nt" id="hPnl">—</span><span id="hSince"></span></div>
+   <svg class="hspark" id="hSpark" viewBox="0 0 300 70" preserveAspectRatio="none"></svg>
+   <div class="feeds" id="hFeeds"></div>
+  </div>
+  <div class="stats" id="hStats"></div>
+  <div class="sec"><div class="sh"><h2>Open snipes</h2><span class="n" id="hPosN"></span></div><div class="list" id="hPos"></div><div id="hPosEmpty"></div></div>
+  <div class="sec"><div class="sh"><h2>Live candidates</h2><span class="n" id="hCandN"></span></div><div id="hMetas" class="chips" style="margin:-4px 4px 10px"></div><div class="list" id="hCand"></div></div>
+  <div class="sec"><div class="sh"><h2>Entries &amp; skips</h2><span class="n" id="hDecN"></span></div><div class="list" id="hDec"></div><div id="hDecEmpty"></div></div>
+  <div class="sec"><div class="sh"><h2>Closed snipes</h2><span class="n" id="hClN"></span></div><div class="list" id="hCl"></div><div id="hClEmpty"></div></div>
+  <div class="sec"><div class="sh"><h2>Sniper rules</h2></div><div class="card rules" id="hRules"></div></div>
+  <div class="note">Free feeds only: pump.fun launches, Jupiter token stats, DexScreener profiles/boosts, Solana Tracker trending, X follower counts via fxtwitter. Fills are real Jupiter quotes for a $10 ticket plus priority fee and landing slippage. Paper only.</div>
  </section>
 
  <footer>
@@ -401,6 +441,57 @@ function traderHTML(r,i,T){const lv=T||{};const copying=(S.watching||[]).include
 /* ---------- empty state ---------- */
 function radar(names,title,sub){const ns=(names||[]).slice(0,6);const bl=ns.map((n,i)=>{const a=(i/ns.length)*Math.PI*2-1.2,rr=30+(i%2)*14;const h=hue(n);return`<span class="blip" style="left:${50+Math.cos(a)*rr}%;top:${50+Math.sin(a)*rr}%;background:linear-gradient(140deg,hsl(${h},65%,60%),hsl(${(h+70)%360},55%,40%));animation-delay:${i*.6}s">${esc(String(n).split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase())}</span>`}).join("");
  return`<div class="card empty"><div class="radar"><div class="sweep"></div><span class="wave"></span><span class="wave"></span><span class="wave"></span><div class="core"></div>${bl}</div><h3 class="ell">${esc(title)}</h3><p>${sub}</p></div>`}
+/* ---------- hype sniper ---------- */
+const CAT={social:[25,"#86d6ff"],narrative:[20,"#bba9ff"],traction:[40,"#7cefc4"],momentum:[15,"#ffd38a"],attention:[12,"#ffa1b4"]};
+const ringC=v=>v>=70?"#7cefc4":v>=55?"#ffd38a":v>=40?"#86d6ff":"rgba(255,255,255,.35)";
+function sring(v,min){const x=num(v)?Math.round(v):0;return`<span class="sring${x>=(min||55)?" hot":""}" style="--p:${x};--rc:${ringC(x)}"><b>${x}</b></span>`}
+function cbars(c){c=c||{};return`<div class="cbars">${Object.entries(CAT).map(([k,[mx,col]])=>`<div>${k} ${num(c[k])?c[k]:0}<s><u style="width:${Math.max(0,Math.min(100,(c[k]||0)/mx*100)).toFixed(0)}%;background:${col}"></u></s></div>`).join("")}${num(c.penalty)&&c.penalty<0?`<div style="grid-column:1/-1;color:var(--dn)">penalties ${c.penalty}</div>`:""}</div>`}
+function bdChips(bd,n=8){return`<div class="bd">${(bd||[]).filter(b=>b[0]!=="social"||b[2]!==0).slice(0,n).map(b=>`<span class="chip ${b[2]<0?"dn":b[0]==="narrative"?"acc":b[0]==="traction"?"up":b[0]==="social"?"aq":"am"}">${esc(b[1])} ${b[2]>0?"+":""}${b[2]}</span>`).join("")}</div>`}
+function hlinks(l){l=l||{};const a=[["pump","pump.fun"],["dex","DexScreener"],["x","X"],["web","site"],["tg","Telegram"],["solscan","Solscan"]];return`<div class="lnk">${a.filter(([k])=>safeUrl(l[k])).map(([k,t])=>`<a href="${esc(safeUrl(l[k]))}" target="_blank" rel="noreferrer" onclick="event.stopPropagation()">${t}</a>`).join("")}</div>`}
+function xline(x){return x&&x.handle?` · @${esc(x.handle)}${num(x.followers)?" "+kfmt(x.followers).slice(1)+" followers":""}`:""}
+function hPosHTML(p){const lo=p.stopPx,hi=Math.max(p.tpPx,p.peak||0,p.last)*1.08,sc=v=>Math.max(0,Math.min(100,(v-lo)/(hi-lo)*100)).toFixed(1);
+ return`<div class="l1">${logo(p.icon,p.sym,40)}<div class="nm"><div class="t"><span class="sym">$${esc(p.sym)}</span>${p.tpDone?'<span class="chip up">half sold at 2x</span>':""}${p.noPrice?'<span class="chip dn">no price</span>':""}</div><div class="d">${num(p.x)?p.x.toFixed(2)+"x":""} · held ${dur(p.held)} · in at ${price(p.entry)}${xline(p.xinfo)}</div></div>${sring(p.score)}<div class="rt"><div class="a ${cls(p.pnl)}">${signed(p.pnl)}</div><span class="pill ${cls(p.pnl)}">${pct(p.pnl/(p.cost0||10)*100)}</span></div></div>
+ <div class="lv"><span>stop</span><div class="tr"><i class="sl" style="left:0%"></i><i style="left:${sc(p.entry)}%"></i><i class="pk" style="left:${sc(p.tpPx)}%"></i>${p.trailPx?`<i class="tl" style="left:${sc(p.trailPx)}%"></i>`:""}<u style="left:${sc(p.last)}%"></u></div><span>2x</span></div>
+ ${cbars(p.cats)}${bdChips(p.bd)}<div class="l2"><span>Entry mcap <b>${kfmt(p.entryMcap)}</b></span><span>Impact <b>${num(p.impactPct)?p.impactPct.toFixed(1)+"%":"—"}</b></span><span>Round trip <b>${num(p.roundTripPct)?p.roundTripPct+"%":"—"}</b></span>${p.chain?`<span>Top10 <b>${p.chain.top10Pct}%</b></span>`:""}</div>${hlinks(p.links)}`}
+function hCandHTML(c,min){const st=c.status==="entered"?'<span class="chip up">entered</span>':c.status==="skipped"?'<span class="chip am">skipped</span>':num(c.score)&&c.score>=min?'<span class="chip acc">checking</span>':"";
+ return`<div class="l1">${sring(c.score,min)}${logo(c.icon,c.sym,30)}<div class="nm"><div class="t"><span class="sym">$${esc(c.sym||"?")}</span>${st}</div><div class="d">${dur(c.age)} old · ${kfmt(c.mcap)} mcap · ${num(c.traders5m)?c.traders5m:0} traders/5m · ${num(c.holders)?c.holders:0} holders${xline(c.x)}</div></div></div>
+ ${cbars(c.cats)}${bdChips(c.bd,6)}${c.why?`<div class="note" style="margin:6px 0 0">${esc(c.why)}</div>`:""}${hlinks(c.links)}`}
+function hDecHTML(d){const e=d.action==="enter";return`${sring(d.score)}<div style="flex:1;min-width:0"><div style="display:flex;align-items:center;gap:6px;font-weight:600">${logo(d.icon,d.sym,22)} $${esc(d.sym||"?")} <span class="chip ${e?"up":"am"}">${e?"entered":"skipped"}</span><time>${esc(d.at||"")}</time></div><div class="why">${esc(d.reason)}</div><div class="why" style="color:var(--faint)">${kfmt(d.mcap)} mcap · ${num(d.traders5m)?d.traders5m:0} traders/5m${xline(d.x)}</div>${hlinks(d.links)}</div>`}
+function hClHTML(c){return`<div class="l1">${logo(c.icon,c.sym,36)}<div class="nm"><div class="t"><span class="sym">$${esc(c.sym)}</span></div><div class="d">${esc(c.why)} · held ${dur(c.held)} · ${esc(c.closedAt||"")}</div></div>${sring(c.score)}<div class="rt"><div class="a ${cls(c.pnl)}">${signed(c.pnl)}</div><span class="pill ${cls(c.pct)}">${pct(c.pct)}</span></div></div>`}
+function hSpark(ser,start){const sv=$("hSpark");if(!Array.isArray(ser)||ser.length<2){sv.innerHTML="";return}const v=ser.map(x=>x[1]),lo=Math.min(start,...v),hi=Math.max(start,...v),r=hi-lo||1,W=300,Hh=70;
+ const pt=(x,i)=>[(i/(v.length-1))*W,4+(1-(x-lo)/r)*(Hh-8)];const d=v.map((x,i)=>(i?"L":"M")+pt(x,i).map(n=>n.toFixed(1)).join(",")).join("");const up=v[v.length-1]>=start,c=up?"#7cefc4":"#ffa1b4",y0=(4+(1-(start-lo)/r)*(Hh-8)).toFixed(1);
+ const h=`<defs><linearGradient id="hg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${c}" stop-opacity=".35"/><stop offset="1" stop-color="${c}" stop-opacity="0"/></linearGradient></defs><line x1="0" x2="${W}" y1="${y0}" y2="${y0}" stroke="rgba(255,255,255,.18)" stroke-dasharray="3 4"/><path d="${d}L${W},${Hh}L0,${Hh}Z" fill="url(#hg)"/><path d="${d}" fill="none" stroke="${c}" stroke-width="2" vector-effect="non-scaling-stroke" pathLength="1" class="draw"/>`;
+ if(sv._h!==h){sv.innerHTML=h;sv._h=h}}
+let HP=null;
+function renderHype(H,fromPoll){if(!H||!H.live){setHTML($("hPosEmpty"),radar(["pump","jup","dex","x"],"Hype sniper starting","Waiting for the first scan of pump.fun, Jupiter, DexScreener and X."));return}
+ const st=H.startUsd||100,C=H.cfg||{},min=C.min_score||55;
+ setNum($("hBal"),H.equity,v=>money(v),{from:st,ms:1400});const pe=$("hPnl");pe.className="pill "+cls(H.pnl);pe.textContent=(H.pnl>=0?"▲ ":"▼ ")+signed(H.pnl).replace(/^[+-]/,"")+" vs $"+st+" · "+pct(H.pnlPct,2);
+ $("hSince").textContent=(H.startedAt?"since "+H.startedAt:"")+(H.stale?" · paused":" · scanning");hSpark(H.series,st);
+ const fd=Object.entries(H.sources||{}).sort();setHTML($("hFeeds"),fd.map(([k,v])=>`<span class="chip ${v.ok?"":"dn"}" title="${esc(v.err||"")}"><i></i>${esc(k)}</span>`).join(""));
+ const S2=H.stats||{};const tiles=[["Cash","hc",H.cash,money,"available"],["Open P&L","hu",H.unreal,signed,(H.open||[]).length+"/"+(C.max_open||5)+" open"],["Realized","hr",H.realized,signed,H.trades+" closed"],["Win rate","hw",H.trades?H.wins/H.trades*100:null,v=>num(v)?Math.round(v)+"%":"—",H.trades?`${H.wins} of ${H.trades}`:"no closes yet"],
+  ["Coins seen","hs",S2.seen,v=>num(v)?String(Math.round(v)):"—",`${H.pool||0} in pool`],["Entered / skipped","he",S2.entered,v=>num(v)?String(Math.round(v)):"—",`${S2.skipped||0} skipped`]];
+ const ht=$("hStats");if(ht._n!==tiles.length){ht.innerHTML=tiles.map(([k,id],i)=>`<div class="card tile enter" style="animation-delay:${i*50}ms"><div class="k">${esc(k)}</div><div class="v" id="t_${id}">—</div><div class="s" id="s_${id}"></div></div>`).join("");ht._n=tiles.length}
+ tiles.forEach(([k,id,v,f,sub])=>{const el=$("t_"+id);setNum(el,v,f,{from:f===money||f===signed?0:undefined});if(f===signed&&num(v))el.className="v "+cls(v);$("s_"+id).textContent=sub});
+ const O=H.open||[];$("hPosN").textContent=O.length?O.length+" open":"";
+ reconcile($("hPos"),O,p=>"hp|"+p.mint,hPosHTML,{cls:"card it",flash:"pnl"});
+ setHTML($("hPosEmpty"),O.length?"":radar((H.candidates||[]).slice(0,6).map(c=>c.sym||"?"),`Scanning ${H.pool||0} fresh coins`,`Enters at score ${min}+ when every safety gate passes. Best right now: ${(H.candidates||[]).slice(0,3).map(c=>"$"+esc(c.sym)+" "+c.score).join(" · ")||"—"}`));
+ const CA=(H.candidates||[]).slice(0,15);$("hCandN").textContent=CA.length?"top "+CA.length+" by score":"";
+ setHTML($("hMetas"),(H.metas||[]).length?`<span class="chip">hot metas</span>`+(H.metas||[]).slice(0,8).map(m=>`<span class="chip acc">${esc(m[0])} ×${m[1]}</span>`).join(""):"");
+ reconcile($("hCand"),CA,c=>"hc|"+c.mint,c=>hCandHTML(c,min),{cls:"card cand",flash:"score"});
+ const DE=H.decisions||[];$("hDecN").textContent=num(S2.entered)?`${S2.entered} in · ${S2.skipped||0} skipped`:"";
+ reconcile($("hDec"),DE.slice(0,30),d=>"hd|"+d.ts+"|"+d.mint+"|"+d.action,hDecHTML,{cls:"card dec"});
+ document.querySelectorAll("#hDec .dec").forEach((el,i)=>el.classList.toggle("ent",(DE[i]||{}).action==="enter"));
+ setHTML($("hDecEmpty"),DE.length?"":`<div class="card soft">Every coin that reaches score ${min} lands here with the gate that let it in or kept it out.</div>`);
+ const CL=H.closes||[];$("hClN").textContent=CL.length?CL.length+" closed":"";
+ reconcile($("hCl"),CL,c=>"hx|"+c.mint+"|"+c.closed,hClHTML,{tag:"a",cls:"card it",attrs:(el,c)=>{const u=safeUrl((c.links||{}).dex);if(u){el.href=u;el.target="_blank";el.rel="noreferrer"}}});
+ setHTML($("hClEmpty"),CL.length?"":`<div class="card soft">No closed snipes yet. Exits: half at ${C.tp_mult||2}x, trail ${C.trail_pct||30}% from the peak, stop -${C.stop_pct||35}%, max ${C.max_hold_h||6}h.</div>`);
+ const rl=["Paper only",`$${C.ticket_usd} per snipe`,`Max ${C.max_open} open`,`Enter at score ${min}+`,`Half at ${C.tp_mult}x, trail ${C.trail_pct}%`,`Stop -${C.stop_pct}%`,`Max hold ${C.max_hold_h}h`,`Mint + freeze authority off`,`Top-10 ≤ ${C.max_top10_pct}%`,`Top wallet ≤ ${C.max_top1_pct}%`,`Dev ≤ ${C.max_dev_pct}%`,`Jupiter buy + sell route`,`Not a copycat ticker`,`≥ ${C.min_traders_5m} traders / 5m`,`Mcap ${kfmt(C.min_mcap)}–${kfmt(C.max_mcap)}`,`Age ≤ ${C.max_age_h}h`];
+ setHTML($("hRules"),rl.map(x=>`<span class="chip">${esc(x)}</span>`).join("")+(C.hype_handles||[]).slice(0,20).map(h=>`<span class="chip aq">@${esc(h)}</span>`).join(""));
+ bumpCnt("cHype",O.length);
+ if(fromPoll&&HP&&!first){const pk=new Set((HP.open||[]).map(p=>p.mint)),ck=new Set((HP.closes||[]).map(c=>c.mint+"|"+c.closed));let n=0;
+  for(const p of O)if(!pk.has(p.mint)&&n++<2)toast(logo(p.icon,p.sym,32),"transparent",`Sniped <b>$${esc(p.sym)}</b> · score ${p.score}`,`$${C.ticket_usd} at ${price(p.entry)}${xline(p.xinfo)}`);
+  for(const c of CL)if(!ck.has(c.mint+"|"+c.closed)&&n++<3)toast(logo(c.icon,c.sym,32),"transparent",`Hype exit <b>$${esc(c.sym)}</b> <span class="${cls(c.pnl)}">${signed(c.pnl)}</span>`,esc(c.why))}
+ if(fromPoll)HP=H}
 /* ---------- render ---------- */
 function bumpCnt(id,v){const el=$(id);const t=v?String(v):"";if(el.textContent!==t){el.textContent=t;if(!first&&t){el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}}}
 function render(fromPoll){if(!S)return;document.body.classList.remove("loading");
@@ -459,6 +550,7 @@ function render(fromPoll){if(!S)return;document.body.classList.remove("loading")
  /* archive */
  const M=S.momentum,PS=S.prevSessions||[];$("archWrap").style.display=M||PS.length?"":"none";
  setHTML($("arch"),(M?`<div class="card arch"><div><b>Momentum bot</b><br><span style="font-size:11.5px;color:var(--faint)">${esc(M.started)} → ${esc(M.ended)} · ${M.trades} closes · ${M.wins} wins</span></div><span class="pill ${cls(M.final-START)}">${money(M.final)}</span></div>`:"")+PS.map(s=>`<div class="card arch"><div><b>Copy desk</b><br><span style="font-size:11.5px;color:var(--faint)">${esc(s.started)} → ${esc(s.ended)}${num(s.closes)?" · "+s.closes+" closes":""}</span></div><span class="pill ${cls((s.final||START)-START)}">${money(s.final)}</span></div>`).join(""));
+ try{renderHype(S.hype,fromPoll)}catch(e){console.error(e)}
  /* events → toasts + trader pings */
  if(fromPoll&&P&&!first)events(P,S);
  if(fromPoll)P=S;
@@ -482,7 +574,7 @@ async function poll(){try{const r=await fetch(SRC,{cache:"no-store",headers:{"ng
 async function tick(){if(!S||!(S.positions||[]).length||document.hidden)return;try{const a=[...new Set(S.positions.map(p=>p.addr))].slice(0,30).join(",");const r=await fetch("https://api.dexscreener.com/tokens/v1/solana/"+a);if(!r.ok)return;const js=await r.json();const best={};
  for(const p of js){if(p.chainId!=="solana"||!p.priceUsd)continue;const ad=p.baseToken.address,lq=(p.liquidity||{}).usd||0;if(!best[ad]||lq>best[ad].lq)best[ad]={lq,px:+p.priceUsd}}for(const ad in best)live[ad]={px:best[ad].px,ts:Date.now()};render(false)}catch(e){}}
 /* ---------- ui wiring ---------- */
-const ORDER=["home","hist","desk","log"];
+const ORDER=["home","hist","desk","log","hype"];
 document.querySelectorAll("#tabs button").forEach(b=>b.onclick=()=>{const t=b.dataset.t;if(t===tab)return;const dir=ORDER.indexOf(t)>ORDER.indexOf(tab)?"in-r":"in-l";tab=t;
  document.querySelectorAll("#tabs button").forEach(x=>x.classList.toggle("on",x===b));$("ind").style.transform=`translateX(${ORDER.indexOf(t)*100}%)`;
  document.querySelectorAll(".panel").forEach(p=>{const on=p.id==="p-"+t;p.classList.remove("in-r","in-l");p.classList.toggle("on",on);if(on&&!RM){void p.offsetWidth;p.classList.add(dir)}});

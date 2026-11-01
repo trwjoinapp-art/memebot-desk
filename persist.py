@@ -1,10 +1,11 @@
 """persist.py · keeps the PAPER desk state durable on free hosts with ephemeral disks, and keeps free hosts awake.
-restore: pull desk_state.json from a PRIVATE Hugging Face dataset repo (STATE_REPO) if it is newer than the local copy.
-loop:    push desk_state.json there every SNAP_SEC when it changed; ping our own public URL so idle-sleep hosts stay up.
+restore: pull desk_state.json + hype_state.json from a PRIVATE Hugging Face dataset repo (STATE_REPO), each only if newer than the local copy.
+loop:    push whichever of them changed there every SNAP_SEC (one commit); ping our own public URL so idle-sleep hosts stay up.
 Needs env HF_TOKEN + STATE_REPO (e.g. "mohamed-trader/memebot-desk-state"); without them it does nothing (state resets on restart).
 Never prints tokens. Touches no wallets/keys/signing: it only copies a JSON file."""
 import os, sys, json, time, shutil, urllib.request
-SF = "/workspace/desk/desk_state.json"
+D = os.environ.get("DESK_DIR", "/workspace/desk")
+FILES = [os.path.join(D, "desk_state.json"), os.path.join(D, "hype_state.json")]   # copier desk + hype sniper (each optional remotely)
 TOKEN = os.environ.get("HF_TOKEN", "").strip(); REPO = os.environ.get("STATE_REPO", "").strip()
 SNAP = int(os.environ.get("SNAP_SEC", "300")); PING = int(os.environ.get("KEEPALIVE_SEC", "540"))
 def log(*a): print("[persist]", time.strftime("%H:%M:%S"), *a, flush=True)
@@ -20,30 +21,41 @@ def restore():
     if not (TOKEN and REPO): log("no HF_TOKEN/STATE_REPO -> state is NOT durable (resets on restart)"); return
     try:
         from huggingface_hub import hf_hub_download
-        api(); p = hf_hub_download(REPO, "desk_state.json", repo_type="dataset", token=TOKEN, force_download=True)
-        r, l = fresh(p), fresh(SF)
-        if r > l: shutil.copy(p, SF); log(f"restored snapshot from {REPO} (remote {r:.0f} > local {l:.0f})")
-        else: log(f"kept local state (local {l:.0f} >= remote {r:.0f})")
+        api()
     except Exception as e:
-        log("restore skipped:", type(e).__name__, str(e).replace(TOKEN, "<HF_TOKEN>")[:200] if TOKEN else str(e)[:200])
+        log("restore skipped:", type(e).__name__, str(e).replace(TOKEN, "<HF_TOKEN>")[:200]); return
+    for SF in FILES:
+        name = os.path.basename(SF)
+        try:
+            p = hf_hub_download(REPO, name, repo_type="dataset", token=TOKEN, force_download=True)
+            r, l = fresh(p), fresh(SF)
+            if r > l: shutil.copy(p, SF); log(f"restored {name} from {REPO} (remote {r:.0f} > local {l:.0f})")
+            else: log(f"kept local {name} (local {l:.0f} >= remote {r:.0f})")
+        except Exception as e:   # e.g. hype_state.json not pushed yet -> start fresh
+            log(f"restore {name} skipped:", type(e).__name__, str(e).replace(TOKEN, "<HF_TOKEN>")[:160])
 def public_url():
     u = os.environ.get("PUBLIC_URL") or os.environ.get("RENDER_EXTERNAL_URL") or ""
     if not u and os.environ.get("SPACE_HOST"): u = "https://" + os.environ["SPACE_HOST"]
     return u.rstrip("/")
 def loop():
-    last_m, last_push, last_ping = 0, 0, 0; a = None; url = public_url()
+    last_m, last_push, last_ping = {}, 0, 0; a = None; url = public_url()
     log("snapshots", "ON -> " + REPO if (TOKEN and REPO) else "OFF", "| keepalive", url or "OFF")
     while True:
         now = time.time()
         if TOKEN and REPO and now - last_push >= SNAP:
             try:
-                m = os.path.getmtime(SF)
-                if m != last_m:
+                from huggingface_hub import CommitOperationAdd
+                ops, ms = [], {}
+                for SF in FILES:
+                    if not os.path.exists(SF): continue
+                    m = os.path.getmtime(SF)
+                    if m != last_m.get(SF):
+                        tmp = "/tmp/snap_" + os.path.basename(SF); shutil.copy(SF, tmp)   # copy first: writers replace the file atomically
+                        ops.append(CommitOperationAdd(path_in_repo=os.path.basename(SF), path_or_fileobj=tmp)); ms[SF] = m
+                if ops:
                     a = a or api()
-                    shutil.copy(SF, "/tmp/snap.json")
-                    a.upload_file(path_or_fileobj="/tmp/snap.json", path_in_repo="desk_state.json", repo_id=REPO, repo_type="dataset",
-                                  commit_message="desk snapshot")
-                    last_m = m; log("snapshot pushed")
+                    a.create_commit(repo_id=REPO, repo_type="dataset", operations=ops, commit_message="desk snapshot")
+                    last_m.update(ms); log("snapshot pushed:", ", ".join(o.path_in_repo for o in ops))
             except Exception as e:
                 log("snapshot failed:", type(e).__name__, (str(e).replace(TOKEN, "<HF_TOKEN>"))[:200])
             last_push = now

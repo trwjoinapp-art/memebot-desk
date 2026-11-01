@@ -11,6 +11,13 @@ def state():
             except Exception as e:
                 print("build error", e)
         return _cache["body"]
+_hcache = {"t": 0, "body": b"{}"}
+def hype_state():
+    with _lock:
+        if time.time() - _hcache["t"] > 2:
+            try: _hcache["body"] = json.dumps(export2.hype(), separators=(",", ":")).encode(); _hcache["t"] = time.time()
+            except Exception as e: print("hype build error", e)
+        return _hcache["body"]
 class H(http.server.BaseHTTPRequestHandler):
     def _send(self, code, body, ctype):
         self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Cache-Control", "no-store")
@@ -21,6 +28,8 @@ class H(http.server.BaseHTTPRequestHandler):
             self._send(200, open(os.path.join(DIR, "index.html"), "rb").read(), "text/html; charset=utf-8")
         elif p == "/api/state":
             self._send(200, state(), "application/json")
+        elif p == "/api/hype":
+            self._send(200, hype_state(), "application/json")
         elif p == "/healthz":
             self._send(200, b"ok", "text/plain")
         else:

@@ -12,3 +12,7 @@ services:
         sync: false
       - key: STATE_REPO
         sync: false
+      - key: SOLANATRACKER_API_KEY   # free plan; hype sniper polls trending once per 30 min
+        sync: false
+      - key: HYPE                    # set to 0 to disable the hype sniper process
+        value: "1"
