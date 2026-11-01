@@ -43,7 +43,8 @@ def rpc(s, m, p):
 def cfg():
     return dict(ticket=LIVE_TICKET_USD, max_coin=MAX_PER_COIN, slip=SLIP_FEE_SIDE, delay=EXEC_DELAY_S, fillSource=FILL_SOURCE, prioFeeSol=PRIO_FEE_SOL, copyAdds=COPY_ADDS, poll=BACKUP_POLL_SEC,
                 stopLoss=STOP_LOSS, tp1X=TP1_X, tp1Frac=TP1_FRAC, trail=TRAIL, maxHoldMin=MAX_HOLD_MIN, maxOpen=MAX_OPEN,
-                dayLoss=DAY_LOSS_PCT, consensusN=CONSENSUS_N, consensusWinS=CONSENSUS_WIN_S, boostX=BOOST_X, exitMode=EXIT_MODE, mirror=MIRROR, mode=("MIRROR" if MIRROR else "FILTERED"), ticketCore=MIRROR_TICKET_CORE, ticketScout=MIRROR_TICKET_SCOUT, maxHoldH=MIRROR_MAX_HOLD_H, noQuoteMin=MIRROR_NOQUOTE_MIN)
+                dayLoss=DAY_LOSS_PCT, consensusN=CONSENSUS_N, consensusWinS=CONSENSUS_WIN_S, boostX=BOOST_X, exitMode=EXIT_MODE, mirror=MIRROR, mode=("MIRROR" if MIRROR else "FILTERED"), ticketCore=MIRROR_TICKET_CORE, ticketScout=MIRROR_TICKET_SCOUT, maxHoldH=MIRROR_MAX_HOLD_H, noQuoteMin=MIRROR_NOQUOTE_MIN,
+                tp_mult=TP_MULT, tp_frac=TP_FRAC, trail_pct=TRAIL_PCT)
 def save(s):
     with L:
         s["safety_credits"] = safety.credits[0]
@@ -260,7 +261,7 @@ def on_swap(s, w, sw, seen_ts):
             pos["adds"].append(dict(ts=int(time.time()), wallet=w["name"], usd=round(tk, 2), px=px, consensus=ncons, fill=fill, leaderPx=lead_px_usd, vsLeaderPct=vs_lead))
         else:
             s["positions"].append(dict(mint=mint, wallet=w["name"], sym=sf["sym"], name=sf["name"], icon=sf["icon"], url=sf["url"],
-                                       opened=int(time.time()), entry=px, qty=qty, cost=tk, buys=1, last=px, peak=px, tp_done=False,
+                                       opened=int(time.time()), entry=px, qty=qty, cost=tk, buys=1, last=px, peak=px, tp_done=False, tpDone=False,
                                        hist=[[int(time.time()), px]], leader_age_s=int(age), liq=sf["liq"], lots={w["address"]: qty},
                                        contrib={w["address"]: 1.0}, reason=reason, safety=sf, adds=[], fill=fill, leaderPx=lead_px_usd,
                                        vsLeaderPct=(round(vs_lead, 2) if vs_lead is not None else None), impactPct=impact, fillLagS=round(t_fill - sw["ts"], 2),
@@ -269,15 +270,43 @@ def on_swap(s, w, sw, seen_ts):
 def pos_lead_add(s, w, mint, pos):
     """True when this buy is the same leader adding to a coin we already copied from him and policy limits adds."""
     return bool(pos and pos["lots"].get(w["address"], 0) > 0 and COPY_ADDS == "winners")
+def normalize_mirror_pos(p):
+    """Default peak / tpDone on a restored snapshot. Does not touch cash, qty, cost, or history."""
+    if "tpDone" in p: done = bool(p["tpDone"])
+    else: done = bool(p.get("tp_done", False))
+    p["tpDone"] = done; p["tp_done"] = done
+    if p.get("peak") is None: p["peak"] = p.get("last") or p.get("entry") or 0.0
+def lock_settings(s):
+    c = s.get("cfg") or {}
+    return (float(c.get("tp_mult", TP_MULT)), float(c.get("tp_frac", TP_FRAC)), float(c.get("trail_pct", TRAIL_PCT)))
+def mirror_profit_lock(s, p):
+    """Paper take-profit, then a trailing stop on whatever qty is left. Same sell() fill as a mirrored sell."""
+    tp_mult, tp_frac, trail_pct = lock_settings(s)
+    px, entry = p.get("last") or 0.0, p.get("entry") or 0.0
+    if px <= 0 or entry <= 0 or p.get("qty", 0) <= 0: return
+    if not p.get("tpDone", p.get("tp_done", False)) and px >= entry * tp_mult:
+        frac = max(0.0, min(1.0, tp_frac))
+        if frac <= 0: return
+        part = "half" if abs(frac - 0.5) < 1e-9 else f"{frac * 100:.0f}%"
+        sell(s, p, frac, f"profit lock: sold {part} at {tp_mult:g}x")   # Jupiter quote + fee path inside sell()
+        if p not in s["positions"]: return
+        p["tpDone"] = True; p["tp_done"] = True
+    if p.get("tpDone"):
+        p["peak"] = max(float(p.get("peak") or 0), px)
+        p["trailPx"] = p["peak"] * (1 - trail_pct / 100.0)
+        if px <= p["trailPx"]: sell(s, p, 1.0, f"trailing stop (-{trail_pct:g}% from peak)")
 def risk_exits(s):
     now = time.time()
-    if EXIT_MODE == "mirror":   # leader sells drive exits; only long safety nets here
+    if EXIT_MODE == "mirror":   # leader sells drive exits; profit lock plus the long safety nets
         for p in list(s["positions"]):
+            normalize_mirror_pos(p)
             if now - p["opened"] > MIRROR_MAX_HOLD_H * 3600: sell(s, p, 1.0, f"safety net: held {MIRROR_MAX_HOLD_H}h")
             elif p.get("noquote_since") and now - p["noquote_since"] > MIRROR_NOQUOTE_MIN * 60:
                 qp = quote_sell(s, p["mint"], p["qty"])
                 if qp: sell(s, p, 1.0, f"emergency: no price feed for {MIRROR_NOQUOTE_MIN} min", px=qp)
                 else: p["last"] = 0.0; sell(s, p, 1.0, f"emergency: no price and no sell route for {MIRROR_NOQUOTE_MIN} min, written off", px=1e-18)
+            elif not p.get("noquote_since"):
+                mirror_profit_lock(s, p)
         return
     for p in list(s["positions"]):
         px, e = p["last"], p["entry"]; p["peak"] = max(p.get("peak", px), px)

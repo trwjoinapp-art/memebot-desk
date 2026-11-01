@@ -2,6 +2,17 @@ import json, os, time, datetime, glob, statistics
 from export2 import logo, spark, tz
 D = "/workspace/desk"
 def t(ts): return datetime.datetime.fromtimestamp(ts, tz).strftime('%-I:%M %p %Z')
+def trail_px(p, cfg):
+    """Open-position trail. Mirror mode uses the profit-lock trail; other modes keep the old cfg.trail formula."""
+    done = bool(p.get("tpDone", p.get("tp_done", False)))
+    if cfg.get("exitMode") == "mirror" or cfg.get("mirror"):
+        if p.get("trailPx") is not None: return p["trailPx"]
+        if not done: return None
+        peak = p.get("peak")
+        if peak is None: peak = p.get("last") or p.get("entry") or 0
+        return peak * (1 - float(cfg.get("trail_pct", 30)) / 100.0)
+    if done: return p.get("peak", 0) * (1 - cfg.get("trail", 0))
+    return None
 def J(p):
     try: return json.load(open(p))
     except Exception: return None
@@ -59,7 +70,8 @@ def build():
                               compare=[{k: c[k] for k in ("rule", "desc", "start", "final", "pnl", "x", "trades", "winRate", "pf", "maxDD", "put", "exits")} for c in bt["compare"]])
                          if bt else None))
     if not st: out.update(live=False); return out
-    cfg = st["cfg"]; slip = cfg["slip"]
+    cfg = dict(st["cfg"]); slip = cfg["slip"]
+    cfg.setdefault("tp_mult", 2.0); cfg.setdefault("tp_frac", 0.5); cfg.setdefault("trail_pct", 30)
     names = {w["address"]: w for w in st["wallets"]}
     pos = []
     for p in st["positions"]:
@@ -71,9 +83,9 @@ def build():
                         buys=p["buys"], lag=p.get("leader_age_s"), spark=spark(p["hist"]),
                         reason=p.get("reason"), safety={k: sf.get(k) for k in ("ok", "liq", "vol24", "ageMin", "mcap", "mintAuth", "freezeAuth", "top10Pct", "topPct", "athPct", "fails")} if sf else None,
                         fill=p.get("fill"), vsLeaderPct=p.get("vsLeaderPct"), impactPct=p.get("impactPct"), fillLagS=p.get("fillLagS"),
-                        peak=p.get("peak"), tpDone=p.get("tp_done", False), openedTs=p["opened"],
+                        peak=p.get("peak"), tpDone=bool(p.get("tpDone", p.get("tp_done", False))), openedTs=p["opened"],
                         stopPx=(p["entry"] * (1 - cfg.get("stopLoss", 1)) if cfg.get("exitMode") != "mirror" else None),
-                        trailPx=(p.get("peak", 0) * (1 - cfg.get("trail", 0)) if p.get("tp_done") and cfg.get("exitMode") != "mirror" else None)))
+                        trailPx=trail_px(p, cfg)))
     cl = [dict(sym=c["sym"], name=c["name"], logo=logo(c["icon"]), url=c["url"], wallet=c["wallet"], at=t(c["ts"]), ts=c["ts"], held=int(c["held_s"] / 60),
                entry=c["entry"], exit=c["exit"], cost=round(c["cost"], 4), pnl=round(c["pnl"], 4), pct=round(c["pct"], 2), share=round(c["share"] * 100),
                exitReason=c.get("exitReason", "mirror sell"), reason=c.get("reason"), fill=c.get("fill")) for c in st["closes"][:30]]

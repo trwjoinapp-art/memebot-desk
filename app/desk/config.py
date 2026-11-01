@@ -65,6 +65,10 @@ BACKUP_POLL_SEC = 30          # catch-up poll per wallet (1 credit each): ~17k c
 WS_PING_SEC = 10              # our own ping; no pong in 10s -> reconnect
 FREEZE_GAP_S = 20             # wall clock jumped this much more than monotonic -> box was frozen: reconnect + poll now
 FEED_ALERT_POLL_S = 120       # no successful poll this long -> feed alert
+# Profit lock on top of MIRROR (paper sells only): sell half at 2x, then trail the rest 30% under the high.
+TP_MULT = 2.0        # mark >= entry * tp_mult arms the partial
+TP_FRAC = 0.5        # fraction of the qty still open to paper-sell
+TRAIL_PCT = 30       # after that partial, exit the remainder this far under the peak
 # ---- v4 MIRROR mode (Mohamed 12:29 Nov 1): copy every real leader buy/sell immediately, no liquidity/volume/age/launch-curve gates. PAPER ONLY.
 MIRROR = True
 if MIRROR:
