@@ -44,7 +44,8 @@ def trow(r, tier):
                 winRate=round(r.get("win", 0), 3), pf=round(min(r.get("pf", 0), 99), 2), greenDays=round(r.get("green", 0), 3),
                 activeDays=r.get("active_days"), txs=r.get("txs"), src=r.get("src"), xRisk=r.get("x_risk"),
                 why=r.get("why"), x7=r.get("x7"), idleH=r.get("idle_h"), zeroShare=r.get("zero_share"), entryMcapMed=r.get("entry_mcap_med"),
-                snipeShare=r.get("snipe_share"), avgBuyUsd=r.get("avg_buy_usd"), stTags=r.get("st_tags"), address=r.get("address"))
+                snipeShare=r.get("snipe_share"), avgBuyUsd=r.get("avg_buy_usd"), stTags=r.get("st_tags"), address=r.get("address"),
+                handle=r.get("x"), sources=r.get("sources"), platforms=r.get("platforms"), lead30=r.get("lead30"), lead7=r.get("lead7"), historySrc=r.get("history_src"))
 def build():
     v3 = os.path.exists(f"{D}/shortlist3.json"); v2 = v3 or os.path.exists(f"{D}/shortlist2.json")
     sl = J(f"{D}/shortlist3.json") if v3 else J(f"{D}/shortlist2.json") if v2 else J(f"{D}/shortlist.json")

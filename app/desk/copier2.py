@@ -49,13 +49,27 @@ def save(s):
     with L:
         s["safety_credits"] = safety.credits[0]
         json.dump(s, open(SF + ".tmp", "w")); os.replace(SF + ".tmp", SF)
-def load():
-    if os.path.exists(SF):
-        s = json.load(open(SF))
-        if s.get("version") == 2 and s.get("desk") == 3: s["cfg"] = cfg(); return s
+def shortlist_wallets():
     sl = json.load(open(os.path.join(HERE, "shortlist3.json" if os.path.exists(os.path.join(HERE, "shortlist3.json")) else "shortlist2.json")))
     ws = [dict(name=w["name"], address=w["address"], tier="core", last_sig=None) for w in sl["shortlist"]] + \
          [dict(name=w["name"], address=w["address"], tier="scout", last_sig=None) for w in sl["scouts"]]
+    return [w for w in ws if w["address"] not in DROP_WALLETS]
+def sync_wallets(s):
+    """Persisted state used to ignore shortlist changes. Rebuild the watch list from the shortlist on every start,
+    keeping last_sig/tstats for wallets that stay; open positions keep the name they were opened under."""
+    old = {w["address"]: w for w in s.get("wallets", [])}; ws = shortlist_wallets()
+    for w in ws:
+        if w["address"] in old: w["last_sig"] = old[w["address"]].get("last_sig")
+        s.setdefault("tstats", {}).setdefault(w["address"], dict(signals=0, copied=0, skipped=0, pnl=0.0, last=0))
+    added = [w["name"] for w in ws if w["address"] not in old]; removed = [w["name"] for a, w in old.items() if a not in {x["address"] for x in ws}]
+    if added or removed: log("WALLET SYNC from shortlist: +", added, "-", removed)
+    s["wallets"] = ws
+    return s
+def load():
+    if os.path.exists(SF):
+        s = json.load(open(SF))
+        if s.get("version") == 2 and s.get("desk") == 3: s["cfg"] = cfg(); return sync_wallets(s)
+    ws = shortlist_wallets()
     now = int(time.time())
     return dict(version=2, desk=3, cfg=cfg(), started=now, cash=START_USD, positions=[], closes=[], skipped=[], equity=[[now, START_USD]],
                 polls=0, credits=0, signals=0, last_poll=0, wallets=ws, recent={}, day=dict(key="", start_eq=START_USD, halted=False, why=""),
