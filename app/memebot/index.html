@@ -627,11 +627,46 @@ function ccMsg(t){setHTML($("ccMsg"),t?`<div>${t}</div>`:"")}
 function ccPick(mint,user){if(!MINT_RE.test(mint||""))return;if(user)CC.user=true;if(mint!==CC.mint){CC.mint=mint;CC.next=0}
  if(tab!=="home")document.querySelector('#tabs button[data-t="home"]').click();
  ccOptions();ccLoad();if(user&&innerWidth<1000)setTimeout(()=>$("s-chart").scrollIntoView({behavior:RM?"auto":"smooth",block:"start"}),60)}
+/* ---- browser-side candle fallback: used when /api/ohlcv can't reach GeckoTerminal (e.g. the host's shared IP is blocked).
+   Both APIs send Access-Control-Allow-Origin:*. One GeckoTerminal call per 2.5s per tab, cooldown on 429, pool cached per mint. */
+const BX={gap:2500,next:0,cool:0,strikes:0,q:Promise.resolve(),pools:{},c:{},PKEY:"memebot.pools.v1"};
+try{BX.pools=JSON.parse(localStorage.getItem(BX.PKEY)||"{}")||{}}catch(e){}
+const BX_TTL={"1m":30,"5m":60,"15m":120,"1h":300},BX_TF={"1m":["minute",1],"5m":["minute",5],"15m":["minute",15],"1h":["hour",1]};
+function bxJson(url,ms){const ac=new AbortController(),to=setTimeout(()=>ac.abort(),ms||12000);
+ return fetch(url,{signal:ac.signal,headers:{Accept:"application/json"}}).then(async r=>({st:r.status,js:r.ok?await r.json().catch(()=>null):null})).catch(()=>({st:0,js:null})).finally(()=>clearTimeout(to))}
+/* serialised GeckoTerminal queue: fixed spacing, never waits more than 8s, cooldown after 429/5xx */
+function bxGT(url){const run=async()=>{const now=Date.now();if(BX.cool>now)return{st:429,js:null,cooling:1};const w=BX.next-now;if(w>8000)return{st:429,js:null,cooling:1};
+  if(w>0)await new Promise(r=>setTimeout(r,w));BX.next=Date.now()+BX.gap;const r=await bxJson(url);
+  if(r.st===429){BX.strikes++;BX.cool=Date.now()+Math.min(300000,30000*Math.pow(2,BX.strikes-1))}else if(r.st===0||r.st>=500)BX.cool=Date.now()+10000;else if(r.st===200)BX.strikes=0;return r};
+ const p=BX.q.then(run,run);BX.q=p.catch(()=>{});return p}
+function bxSavePools(){try{const k=Object.keys(BX.pools);if(k.length>200)for(const m of k.slice(0,k.length-200))delete BX.pools[m];localStorage.setItem(BX.PKEY,JSON.stringify(BX.pools))}catch(e){}}
+async function bxPool(mint){const hit=BX.pools[mint];if(hit&&Date.now()-hit.t<(hit.p?6*3600e3:300e3))return hit.p;let pool=null,ok=false;
+ const d=await bxJson("https://api.dexscreener.com/latest/dex/tokens/"+mint);
+ if(d.st===200&&d.js){ok=true;let best=-1;for(const x of d.js.pairs||[]){if(!x||x.chainId!=="solana"||!MINT_RE.test(x.pairAddress||""))continue;const l=+((x.liquidity||{}).usd)||0;if(l>best){best=l;pool=x.pairAddress}}}
+ if(!pool){const g=await bxGT(`https://api.geckoterminal.com/api/v2/networks/solana/tokens/${mint}/pools?page=1`);
+  if(g.st===429)return hit?hit.p:"__cooling__";if(g.st===200||g.st===404)ok=true;
+  for(const x of ((g.js||{}).data)||[]){const a=(x.attributes||{}).address||"";if(MINT_RE.test(a)){pool=a;break}}}
+ if(pool||ok){BX.pools[mint]={t:Date.now(),p:pool};bxSavePools()}return pool}
+/* returns the same shape as /api/ohlcv */
+async function ccDirect(mint,tf){const key=mint+"|"+tf,hit=BX.c[key];if(hit&&Date.now()-hit.t<(BX_TTL[tf]||30)*1000)return hit.body;
+ const cool=()=>Math.max(1,Math.round((BX.cool-Date.now())/1000));
+ const pool=await bxPool(mint);if(pool==="__cooling__")return{ok:false,err:"rate_limited",retryIn:cool()};if(!pool)return{ok:false,err:"no_pool"};
+ const[n,a]=BX_TF[tf]||BX_TF["1m"];const r=await bxGT(`https://api.geckoterminal.com/api/v2/networks/solana/pools/${pool}/ohlcv/${n}?aggregate=${a}&limit=300&currency=usd&token=${mint}`);
+ if(r.st!==200||!r.js){if(r.st===404)delete BX.pools[mint];return{ok:false,err:r.st===429?"rate_limited":r.st===404?"no_pool":"upstream_"+(r.st||"down"),retryIn:BX.cool>Date.now()?cool():undefined}}
+ const seen={};for(const x of (((r.js.data||{}).attributes||{}).ohlcv_list)||[]){if(!Array.isArray(x))continue;const t=Math.trunc(+x[0]),o=+x[1],h=+x[2],l=+x[3],c=+x[4],v=+x[5]||0;
+  if(!(t>0)||![o,h,l,c].every(z=>num(z)&&z>0))continue;seen[t]=[t,o,h,l,c,Math.round(v*100)/100]}
+ const body={ok:true,mint,pool,tf,src:"browser",candles:Object.keys(seen).map(Number).sort((x,y)=>x-y).map(t=>seen[t]),fetchedAt:Math.floor(Date.now()/1000),stale:false};
+ BX.c[key]={t:Date.now(),body};const ks=Object.keys(BX.c);if(ks.length>60)delete BX.c[ks[0]];return body}
 async function ccLoad(){if(!CC.mint||CC.busy||!ccInit())return;const mint=CC.mint,tf=CC.tf,key=mint+"|"+tf;CC.busy=true;
  if(CC.key!==key&&!CC.data.length)ccMsg(`<span class="ell">Loading $${esc(CC.sym)} candles</span>`);
  const ac=new AbortController(),to=setTimeout(()=>ac.abort(),15000);let retry=30;
- try{const r=await fetch(`/api/ohlcv?mint=${encodeURIComponent(mint)}&tf=${tf}`,{cache:"no-store",signal:ac.signal});
-  const js=await r.json().catch(()=>null);if(mint!==CC.mint||tf!==CC.tf)return;
+ try{const r=await fetch(`/api/ohlcv?mint=${encodeURIComponent(mint)}&tf=${tf}`,{cache:"no-store",signal:ac.signal}).catch(()=>({status:0,json:async()=>null}));
+  let js=await r.json().catch(()=>null);if(mint!==CC.mint||tf!==CC.tf)return;
+  /* server first; fall back to the visitor's browser when the server can't give fresh candles */
+  const srvBad=!js||!js.ok||!Array.isArray(js.candles)||js.stale||r.status===503;
+  if(srvBad&&r.status!==400){const d=await ccDirect(mint,tf).catch(()=>null);if(mint!==CC.mint||tf!==CC.tf)return;
+   const has=x=>x&&x.ok&&Array.isArray(x.candles)&&x.candles.length;if(has(d)||!has(js))js=(d&&d.ok)||!js?d:js}
+  CC.via=js&&js.ok?(js.src==="browser"?"direct":"server"):CC.via;
   if(js&&js.ok&&Array.isArray(js.candles)){const bars=js.candles.map(c=>({time:TZ(c[0]),open:c[1],high:c[2],low:c[3],close:c[4],v:c[5]}));
    if(!bars.length){ccClear(key);ccMsg(`No trades on $${esc(CC.sym)} in GeckoTerminal yet.`)}
    else{const fresh=CC.key!==key;CC.data=bars;CC.key=key;CC.stale=!!js.stale;CC.at=Date.now()-(js.age||0)*1000;
@@ -645,7 +680,7 @@ async function ccLoad(){if(!CC.mint||CC.busy||!ccInit())return;const mint=CC.min
  catch(e){if(CC.key!==key){ccClear(key);ccMsg(document.hidden?"":"Can’t reach the candle feed. Retrying…")}else CC.stale=true;retry=30}
  finally{clearTimeout(to);CC.busy=false;CC.next=Date.now()+retry*1000;ccHead()}}
 function ccClear(key){CC.data=[];CC.key=key;CC.s.setData([]);CC.v.setData([]);CC.s.setMarkers([]);for(const l of CC.lines)CC.s.removePriceLine(l);CC.lines=[];ccOl(null)}
-function ccHead(){const a=CC.at?Math.round((Date.now()-CC.at)/1000):null;$("ccSrc").innerHTML=`GeckoTerminal · ${CC.tf}${a!=null&&CC.data.length?" · "+(a<90?a+"s":Math.round(a/60)+"m")+" ago":""}${CC.stale&&CC.data.length?' <span class="stale-b">STALE</span>':""}${CC.liveAt&&Date.now()-CC.liveAt<15000?' · <span class="up">● live</span>':""}`}
+function ccHead(){const a=CC.at?Math.round((Date.now()-CC.at)/1000):null;$("ccSrc").innerHTML=`GeckoTerminal${CC.via==="direct"?' <span title="Fetched by your browser because the server could not reach GeckoTerminal">(direct)</span>':""} · ${CC.tf}${a!=null&&CC.data.length?" · "+(a<90?a+"s":Math.round(a/60)+"m")+" ago":""}${CC.stale&&CC.data.length?' <span class="stale-b">STALE</span>':""}${CC.liveAt&&Date.now()-CC.liveAt<15000?' · <span class="up">● live</span>':""}`}
 function ccLiveApply(){const L=live[CC.mint];if(!L||!CC.data.length||!CC.s)return;const sec=TFS[CC.tf]||60,t=TZ(Math.floor(L.ts/1000/sec)*sec),last=CC.data[CC.data.length-1];if(t<last.time)return;
  let b;if(t===last.time){b=last;b.high=Math.max(b.high,L.px);b.low=Math.min(b.low,L.px);b.close=L.px}else{b={time:t,open:last.close,high:Math.max(last.close,L.px),low:Math.min(last.close,L.px),close:L.px,v:0};CC.data.push(b)}
  try{const{v,...bar}=b;CC.s.update(bar);CC.liveAt=L.ts}catch(e){}}
