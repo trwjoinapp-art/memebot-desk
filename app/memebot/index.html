@@ -420,6 +420,44 @@ footer .pp{border-radius:4px;background:var(--p1);border-color:var(--ln);color:v
 .rpe.on{opacity:1}.rpe.on.B{border-color:rgba(34,197,94,.5)}.rpe.on.T{border-color:rgba(245,165,36,.5)}.rpe.on.S{border-color:rgba(242,54,69,.5)}.rpe.na{cursor:default;opacity:.45}
 .cbtn.abs.rpb{right:62px}
 #s-trust .ph,#s-recap .ph{white-space:nowrap}#s-trust .ph .r,#s-recap .ph .r{padding-left:10px;overflow:hidden;text-overflow:ellipsis;min-width:0}
+/* ===== v5 · the whole dashboard in the Trades-tab (daily recap) style ===== */
+:root{--rcbg:radial-gradient(120% 80% at 0% 0%,rgba(41,98,255,.16),transparent 60%),linear-gradient(170deg,#141b2b,#0b0e14 70%);--rcin:rgba(17,21,29,.92)}
+.pn,.sec,details.card{border-radius:10px}
+.ph,.sh{min-height:40px;padding:9px 14px}
+#moodHome{border-radius:10px;background:var(--rcbg);border-color:var(--ln2);padding:12px 14px;font-size:13px}
+/* overview = recap card: big mono balance, inset chart, 2x2 stat grid */
+#s-ov .hd{margin:12px 12px 0;border-radius:10px;background:var(--rcbg);border:1px solid var(--ln2);padding:4px 0 10px;overflow:hidden}
+#s-ov .ld{padding:12px}
+#s-ov .ovh{padding:12px 16px 0}
+#s-ov .bal{font:700 34px var(--mono);letter-spacing:-.5px}
+#s-ov .pl{padding:0 16px;margin-top:4px;font-size:12px;color:var(--dim)}
+#s-ov .ranges{padding:12px 14px 0}
+#s-ov .chartw{margin-top:8px}
+#s-ov .stats{margin:12px;border:1px solid var(--ln);border-radius:6px;overflow:hidden;gap:1px;background:var(--ln)}
+#s-ov .stats .tile{background:var(--rcin);padding:9px 11px}
+.tile .v{font:600 15px var(--mono)}
+#s-ov .risk{margin:0 12px 12px;border:1px solid var(--ln);border-radius:6px;background:var(--rcin)}
+#s-ov .halt{margin:12px 12px 0}
+/* trust meter + chart: inset recap cards */
+#trust{margin:12px;border-radius:10px;background:var(--rcbg);border:1px solid var(--ln2);overflow:hidden}
+#s-chart .cw.tall{margin:8px 12px 12px;border:1px solid var(--ln);border-radius:6px;overflow:hidden}
+#s-chart .ccbar{padding:10px 14px 0}#s-chart .olbar{padding:6px 14px 0}
+/* gear > traders & rules: each trader is a recap card, metrics in the recap grid */
+.dhead{margin:4px 0 12px}.dhead b{font-size:15px}
+#detectBox .card.rules{border:1px solid var(--ln2);border-radius:10px;background:var(--rcbg);padding:12px 14px}
+#p-desk .sec .tr-card{margin:12px;border:1px solid var(--ln2);border-radius:10px;background:var(--rcbg);padding:14px}
+#p-desk .sec .tr-card:hover{background:var(--rcbg)!important;border-color:rgba(41,98,255,.45)}
+#p-desk .sec .tr-card:last-child{border-bottom:1px solid var(--ln2)}
+@media(min-width:760px){#p-desk .sec .listg>.card{border-right:1px solid var(--ln2)}}
+.mx{font:700 22px var(--mono);letter-spacing:-.3px}
+.mbar{gap:1px;margin-top:12px;background:var(--ln);border:1px solid var(--ln);border-radius:6px;overflow:hidden}
+.mbar div{border-radius:0;background:var(--rcin);padding:8px 11px;min-width:0}
+.mbar small{text-transform:uppercase;letter-spacing:.5px}
+.mbar b{display:block;font:600 14px var(--mono);margin-top:2px}
+#rules{margin:12px;border:1px solid var(--ln2);border-radius:10px;background:var(--rcbg);padding:12px 14px}
+#stratBox .card{margin:12px;border:1px solid var(--ln2)!important;border-radius:10px!important;background:var(--rcbg);padding:12px 14px!important}
+#nearBox .inner{padding:0 14px 12px}
+.note{margin:10px 4px}
 </style></head>
 <body class="loading">
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -744,10 +782,13 @@ function traderHTML(r,i,T){const lv=T||{};const copying=(S.watching||[]).include
  const m=[];if(num(r.xReal))m.push(["After costs",r.xReal.toFixed(2)+"x"]);if(num(r.xExBest))m.push(["Ex best coin",r.xExBest.toFixed(2)+"x"]);if(num(r.winRate))m.push(["Win rate",Math.round(r.winRate*100)+"%"]);
  if(num(r.pf))m.push(["Profit factor",r.pf.toFixed(2)]);if(num(r.greenDays))m.push(["Green days",Math.round(r.greenDays*100)+"%"]);if(num(r.score))m.push(["Score",r.score.toFixed(2)]);
  if(m.length<3){m.push(["Buys / day",String(r.bpd??"—")]);m.push(["Median hold",dur(r.hold)]);m.push(["Coins",String(r.coins??"—")])}
- const liveLine=T?`<div class="l2" style="margin-top:9px">${num(lv.signals)?`<span>Signals <b>${lv.signals}</b></span>`:""}${num(lv.copied)?`<span>Copied <b>${lv.copied}</b></span>`:""}${num(lv.skipped)?`<span>Skipped <b>${lv.skipped}</b></span>`:""}${num(lv.pnl)?`<span>P&amp;L <b class="${cls(lv.pnl)}">${signed(lv.pnl)}</b></span>`:""}${lv.lastSeenTs?`<span>seen ${ago(lv.lastSeenTs)}</span>`:""}</div>`:"";
+ const liveLine=T?`<div class="l2" style="margin-top:9px">${num(lv.signals)?`<span>Signals <b>${lv.signals}</b></span>`:""}${num(lv.copied)?`<span>Copied <b>${lv.copied}</b></span>`:""}${num(lv.skipped)?`<span>Skipped <b>${lv.skipped}</b></span>`:""}${num(lv.pnl)?`<span>P&amp;L <b class="${cls(lv.pnl)}">${signed(lv.pnl)}</b></span>`:""}${lv.lastSeenTs?`<span>seen ${ago(lv.lastSeenTs)}</span>`:""}</div>${flipLine(lv)}`:"";
  return`<div class="l1"><span class="rk">${i+1}</span>${ava(r.name,r.addr)}<div class="nm"><div class="t">${esc(r.name)}${copying?`<span class="chip up"><span class="livedot"></span>copying</span>`:""}${r.tier==="scout"?`<span class="chip aq">scout</span>`:""}</div><div class="d">${esc(r.buys)} buys · ${cm(r.put)} → ${cm(r.got)}</div></div><div class="rt"><div class="mx ${cls(xr-1)}">${num(r.x)?r.x.toFixed(2)+"x":"—"}</div><div style="font-size:10.5px;color:var(--faint)">30d copy</div></div></div>
  <div class="mbar">${m.slice(0,6).map(([k,v])=>`<div><small>${k}</small><b>${esc(v)}</b></div>`).join("")}</div>
  ${(r.flags||[]).length||r.best?`<div class="chips">${r.best?`<span class="chip">best $${esc(r.best)} ${num(r.bestUsd)?(r.bestUsd>=0?"+":"-")+cm(Math.abs(r.bestUsd)):""}</span>`:""}${(r.flags||[]).map(f=>`<span class="chip am">⚑ ${esc(f)}</span>`).join("")}</div>`:""}${liveLine}`}
+function flipLine(lv){if(!num(lv.roundTrips)||!lv.roundTrips)return"";const C=S.cfg||{},lim=C.flipHoldS||20;
+ const tag=lv.flipOn?`<span class="chip am">⚡ quick flipper · ${lv.sizeX>0?lv.sizeX+"x size":"not copied"}</span>`:`<span class="chip">full size</span>`;
+ return`<div class="l2" style="margin-top:6px;align-items:center"><span>Median hold <b>${num(lv.medianHoldS)?dur(lv.medianHoldS):"—"}</b></span><span>Under ${lim}s <b>${lv.fastFlips}/${lv.roundTrips}</b></span>${tag}</div>`}
 /* ---------- empty state ---------- */
 function radar(names,title,sub){const ns=(names||[]).slice(0,6);const bl=ns.map((n,i)=>{const a=(i/ns.length)*Math.PI*2-1.2,rr=30+(i%2)*14;const h=hue(n);return`<span class="blip" style="left:${50+Math.cos(a)*rr}%;top:${50+Math.sin(a)*rr}%;background:linear-gradient(140deg,hsl(${h},65%,60%),hsl(${(h+70)%360},55%,40%));animation-delay:${i*.6}s">${esc(String(n).split(/\s+/).map(w=>w[0]).join("").slice(0,2).toUpperCase())}</span>`}).join("");
  return`<div class="card empty"><div class="radar"><div class="sweep"></div><span class="wave"></span><span class="wave"></span><span class="wave"></span><div class="core"></div>${bl}</div><h3 class="ell">${esc(title)}</h3><p>${sub}</p></div>`}
@@ -797,7 +838,7 @@ function render(fromPoll){if(!S)return;document.body.classList.remove("loading")
  const C=S.cfg||{};const rl=["Paper only"];
  if(num(C.ticket))rl.push(`$${C.ticket} per copy`);if(num(C.max_coin))rl.push(`Max $${C.max_coin} / coin`);if(num(C.slip))rl.push(`${+(C.slip*100).toFixed(1)}% slip + fee / side`);if(num(C.delay))rl.push(`${C.delay}s copy delay`);if(num(C.poll))rl.push(`Poll ${C.poll}s`);
  if(num(C.stopLoss))rl.push(`Stop ${Math.abs(C.stopLoss)<=1?Math.round(Math.abs(C.stopLoss)*100)+"%":C.stopLoss}`);if(num(C.tp1X))rl.push(`TP1 at ${C.tp1X}x${num(C.tp1Frac)?" ("+Math.round(C.tp1Frac*100)+"%)":""}`);if(num(C.trail))rl.push(`Trail ${Math.abs(C.trail)<=1?Math.round(C.trail*100)+"%":C.trail}`);
- if(num(C.maxHoldMin))rl.push(`Max hold ${mins(C.maxHoldMin)}`);if(num(C.maxOpen))rl.push(`Max ${C.maxOpen} open`);if(num(C.dayLoss))rl.push(`Day loss cap $${Math.abs(C.dayLoss)}`);if(num(C.consensusN))rl.push(`Consensus ${C.consensusN} wallets${num(C.consensusWinS)?" / "+dur(C.consensusWinS):""}`);if(num(C.boostX))rl.push(`Consensus size ${C.boostX}x`);
+ if(num(C.maxHoldMin))rl.push(`Max hold ${mins(C.maxHoldMin)}`);if(num(C.maxOpen))rl.push(`Max ${C.maxOpen} open`);if(num(C.dayLoss))rl.push(`Day loss cap $${Math.abs(C.dayLoss)}`);if(num(C.consensusN))rl.push(`Consensus ${C.consensusN} wallets${num(C.consensusWinS)?" / "+dur(C.consensusWinS):""}`);if(num(C.boostX))rl.push(`Consensus size ${C.boostX}x`);if(C.flipAction&&C.flipAction!=="off")rl.push(`Quick flippers (${Math.round((C.flipShare||.5)*100)}%+ of last ${C.flipLookback||6} trades under ${C.flipHoldS||20}s): ${C.flipAction==="skip"?"skipped":(C.flipMult||.5)+"x size"}`);
  setHTML($("rules"),rl.map(x=>`<span class="chip">${esc(x)}</span>`).join(""));
  $("btNote").textContent=num(B.candidates)?`Backtest ${B.generated||""}: ${B.candidates} wallets checked${num(B.withBuys)?`, ${B.withBuys} had buys`:""}${num(B.greenCopies)?`, ${B.greenCopies} would have been green for a $10 copier`:""}. Backtest multiples assume ideal fills, so they are a ceiling, not a forecast.${Array.isArray(B.sources)&&B.sources.length?" Sources: "+B.sources.join(", ")+".":""}`:"";
  /* skipped */

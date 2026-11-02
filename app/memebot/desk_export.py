@@ -36,6 +36,14 @@ def prev_sessions():
                             closes=len(s.get("closes", [])), open=len(s.get("positions", [])))
         out.append(_prev[f])
     return out
+def _flip(st, cfg, a):
+    """v5 quick-flip stats for the gear > traders panel: the leader's last N round trips (first buy -> first sell)."""
+    hs = [x[2] for x in (((st.get("leadHold") or {}).get(a) or {}).get("holds") or [])][-int(cfg.get("flipLookback") or 6):]
+    lim = cfg.get("flipHoldS") or 20; fast = sum(1 for x in hs if x < lim); share = fast / len(hs) if hs else None
+    on = cfg.get("flipAction", "off") != "off" and len(hs) >= (cfg.get("flipMinN") or 4) and share >= (cfg.get("flipShare") or 0.5)
+    return dict(roundTrips=len(hs), fastFlips=fast, fastShare=(round(share, 2) if share is not None else None),
+                medianHoldS=(statistics.median(hs) if hs else None), flipOn=on,
+                sizeX=((0.0 if cfg.get("flipAction") == "skip" else cfg.get("flipMult", 0.5)) if on else 1.0))
 def trow(r, tier):
     return dict(name=r["name"], addr=r["address"], buys=r["buys"], coins=r["coins"], put=round(r["put_usd"], 2), got=round(r["got_usd"], 2),
                 x=round(r.get("copy_x", 0), 2), bpd=r["buys_per_day"], hold=r["median_hold_s"], days=r["days"], flags=r["flags"],
@@ -115,5 +123,5 @@ def build():
                feed=[dict(f) for f in (st.get("feed") or [])[:60]],
                traders=[dict(name=w["name"], addr=a, tier=w.get("tier", "core"), signals=ts_.get(a, {}).get("signals", 0), copied=ts_.get(a, {}).get("copied", 0),
                              skipped=ts_.get(a, {}).get("skipped", 0), pnl=round(ts_.get(a, {}).get("pnl", 0), 4), lastSeenTs=ts_.get(a, {}).get("last") or None,
-                             lastSeen=t(ts_[a]["last"]) if ts_.get(a, {}).get("last") else None) for a, w in names.items()])
+                             lastSeen=t(ts_[a]["last"]) if ts_.get(a, {}).get("last") else None, **_flip(st, cfg, a)) for a, w in names.items()])
     return out

@@ -10,7 +10,7 @@ import safety
 assert PAPER is True
 URL = core.HELIUS_RPC + core.HELIUS_KEY; WSS = "wss://mainnet.helius-rpc.com/?api-key=" + core.HELIUS_KEY
 HERE = os.path.dirname(os.path.abspath(__file__)); SF = os.path.join(HERE, "desk_state.json")
-L = threading.RLock(); Q = queue.Queue(); SEEN = set(); POLL_NOW = threading.Event(); WS_KICK = [False]
+L = threading.RLock(); Q = queue.Queue(); SEEN = set(); PENDING = {}; POLL_NOW = threading.Event(); WS_KICK = [False]
 VENUE = {'6EF8rrecthR5Dkzon8Nwu78hRvfCKubJ14M5uBEwF6P': 'pump.fun bonding curve', 'LanMV9sAd7wArD4vJFi2qDdfnVhFxYSUg6eADduJ3uj': 'Raydium LaunchLab bonding curve',
          'dbcij3LWUppWqq96dh6gJWwBifmcGfLSB5D4DuSMaqN': 'Meteora DBC bonding curve', 'pAMMBay6oceH9fJKBRHGP5D4bD4sWpmSwMn52FMfXEA': 'PumpSwap',
          'JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4': 'Jupiter', '675kPX9MHTjS2zt1qfr1NYHuzeLXfQM9H24wFSUt1Mp8': 'Raydium AMM', 'CPMMoo8L3F4NbTegBCKVNunggL7H1ZpdTHKxQB5qKP1C': 'Raydium CPMM',
@@ -44,7 +44,8 @@ def cfg():
     return dict(ticket=LIVE_TICKET_USD, max_coin=MAX_PER_COIN, slip=SLIP_FEE_SIDE, delay=EXEC_DELAY_S, fillSource=FILL_SOURCE, prioFeeSol=PRIO_FEE_SOL, copyAdds=COPY_ADDS, poll=BACKUP_POLL_SEC,
                 stopLoss=STOP_LOSS, tp1X=TP1_X, tp1Frac=TP1_FRAC, trail=TRAIL, maxHoldMin=MAX_HOLD_MIN, maxOpen=MAX_OPEN,
                 dayLoss=DAY_LOSS_PCT, consensusN=CONSENSUS_N, consensusWinS=CONSENSUS_WIN_S, boostX=BOOST_X, exitMode=EXIT_MODE, mirror=MIRROR, mode=("MIRROR" if MIRROR else "FILTERED"), ticketCore=MIRROR_TICKET_CORE, ticketScout=MIRROR_TICKET_SCOUT, maxHoldH=MIRROR_MAX_HOLD_H, noQuoteMin=MIRROR_NOQUOTE_MIN,
-                tp_mult=TP_MULT, tp_frac=TP_FRAC, trail_pct=TRAIL_PCT)
+                tp_mult=TP_MULT, tp_frac=TP_FRAC, trail_pct=TRAIL_PCT,
+                flipHoldS=FLIP_HOLD_S, flipLookback=FLIP_LOOKBACK, flipMinN=FLIP_MIN_N, flipShare=FLIP_SHARE, flipAction=FLIP_ACTION, flipMult=FLIP_MULT)
 def save(s):
     with L:
         s["safety_credits"] = safety.credits[0]
@@ -167,12 +168,54 @@ def sell(s, p, frac, why, wallet=None, px=None, lot=None):
                                fill=("jupiter" if qpx else "dexscreener"), markPx=p["last"]))
     del s["closes"][300:]
     if frac >= 0.98 or p["qty"] * px < 0.05: s["positions"].remove(p)
+def lead_hold(s, addr, mint, sw):
+    """Track the leader's own round trips (first buy of a coin -> first sell of it), copied or not. Call under L."""
+    h = s.setdefault("leadHold", {}).setdefault(addr, dict(open={}, holds=[]))
+    if sw["side"] == "buy":
+        h["open"].setdefault(mint, sw["ts"])
+        if len(h["open"]) > 300:
+            for m in sorted(h["open"], key=h["open"].get)[:len(h["open"]) - 300]: del h["open"][m]
+    elif mint in h["open"]:
+        t0 = h["open"].pop(mint); h["holds"] = (h["holds"] + [[int(sw["ts"]), mint, max(0, int(sw["ts"] - t0))]])[-20:]
+def flip_info(s, addr):
+    """(size multiplier, stats) from the trader's last FLIP_LOOKBACK round trips. 1.0 = normal size, 0 = skip."""
+    hs = [x[2] for x in ((s.get("leadHold") or {}).get(addr) or {}).get("holds", [])][-FLIP_LOOKBACK:]
+    fast = sum(1 for x in hs if x < FLIP_HOLD_S); share = fast / len(hs) if hs else None
+    on = FLIP_ACTION != "off" and len(hs) >= FLIP_MIN_N and share >= FLIP_SHARE
+    mult = (0.0 if FLIP_ACTION == "skip" else FLIP_MULT) if on else 1.0
+    return mult, dict(n=len(hs), fast=fast, share=(round(share, 2) if share is not None else None),
+                      medianHoldS=(statistics.median(hs) if hs else None), on=on, mult=mult)
+def orphan_sweep(s, balance=None):
+    """One-time cleanup (v5): exit open lots whose leader already sold the whole coin, mirroring at the current price.
+    These are bags left by the old race (his sell processed before our copy buy existed). Only sells when his balance is confirmed 0."""
+    def bal(addr, mint):
+        r = rpc(s, "getTokenAccountsByOwner", [addr, {"mint": mint}, {"encoding": "jsonParsed", "commitment": "confirmed"}])
+        return sum(float(((a["account"]["data"]["parsed"]["info"]).get("tokenAmount") or {}).get("uiAmount") or 0) for a in (r or {}).get("value", []))
+    balance = balance or bal; out = []; s["_sweepErrs"] = 0
+    for p in list(s["positions"]):
+        for addr, q in list(p["lots"].items()):
+            if q <= 0 or p not in s["positions"]: continue
+            try: b = balance(addr, p["mint"])
+            except Exception as e: log("orphan sweep", p["sym"], str(e)[:80]); s["_sweepErrs"] += 1; continue
+            if b is None or b > 0: continue
+            w = wname(s, addr); who = w["name"] if w else addr[:4]
+            with L:
+                sell(s, p, min(1.0, q / p["qty"]) if p["qty"] else 1.0, "mirror sell", who, lot=addr)
+                s["closes"][0]["note"] = "cleanup: leader already sold all of it before our copy filled"
+            out.append((p["sym"], who)); log("ORPHAN SWEEP", p["sym"], who, "leader balance 0 -> exited our lot")
+    return out
 def on_swap(s, w, sw, seen_ts):
     mint, now = sw["mint"], time.time(); age = now - sw["ts"]
     if sw["side"] == "sell":
         with L:
             p = next((p for p in s["positions"] if p["mint"] == mint and p["lots"].get(w["address"], 0) > 0), None)
-            s["tstats"][w["address"]]["last"] = int(sw["ts"])
+            s["tstats"][w["address"]]["last"] = int(sw["ts"]); lead_hold(s, w["address"], mint, sw)
+            inflight = PENDING.get((mint, w["address"])) or []
+            full = (sw["token_amount"] / sw["pre_token"] >= 0.98) if (sw.get("pre_token") or 0) > 0 else True
+            if inflight and (full or not p):
+                for tok in inflight: tok["sold"] = True   # an add still in flight after a full exit would be a leftover bag too
+            if not p and inflight:
+                return skip(s, w, None, mint, f"leader SOLD {sw['token_amount']:,.0f} tokens for {sw['sol_in']:.3f} SOL while our copy buy was still in flight: cancelling it, or selling right after the fill", "orphan", sw=sw)
             if not p: return skip(s, w, None, mint, f"leader SOLD {sw['token_amount']:,.0f} tokens for {sw['sol_in']:.3f} SOL on {sw['venue']}; we hold none of it, nothing to mirror", "sell", sw=sw)
             if EXIT_MODE == "risk": return skip(s, w, None, mint, "leader sold; exit mode 'risk' ignores his sells", "sell", sw=sw)
         pre = sw["pre_token"] or 0; share = min(1.0, sw["token_amount"] / pre) if pre > 0 else 1.0
@@ -185,7 +228,7 @@ def on_swap(s, w, sw, seen_ts):
             log("MIRROR SELL", w["name"], p["sym"], f"{share*100:.0f}% of his bag")
         return
     sol_in = (sw.get("sol_amount") or 0) + (sw.get("usd_quote_amount") or 0) / max(C_SOL[0], 1)
-    with L: s["tstats"][w["address"]]["last"] = int(sw["ts"])
+    with L: s["tstats"][w["address"]]["last"] = int(sw["ts"]); lead_hold(s, w["address"], mint, sw)
     if sol_in < MIN_COPY_SOL:
         with L: return skip(s, w, None, mint, f"leader buy only {sol_in:.3f} SOL (${sol_in * C_SOL[0]:.2f}) < {MIN_COPY_SOL} SOL minimum: too small to be a real signal", "filter", sw=sw)
     if not MIRROR and mint.endswith("pump") and sw["token_amount"] > 0 and sol_in / sw["token_amount"] < max(PUMP_MIN_PX_SOL, PUMP_MIN_ENTRY_MCAP_USD / (1e9 * C_SOL[0])):
@@ -208,6 +251,14 @@ def on_swap(s, w, sw, seen_ts):
         if not pos and len(s["positions"]) >= MAX_OPEN: return skip(s, w, None, mint, f"{MAX_OPEN} positions open (max)", "cap", sw=sw)
         in_coin = (pos["cost"] if pos else 0)
         if COPY_ADDS == "none" and pos and pos["lots"].get(w["address"], 0) > 0: return skip(s, w, None, mint, "leader add (policy: first buy only)", "filter", sw=sw)
+        tok = dict(sold=False, ts=sw["ts"]); PENDING.setdefault((mint, w["address"]), []).append(tok)
+    try: return _copy_buy(s, w, sw, seen_ts, mint, age, sol_in, ncons, names, pos, in_coin, tok)
+    finally:
+        with L:
+            lst = PENDING.get((mint, w["address"])) or []
+            if tok in lst: lst.remove(tok)
+            if not lst: PENDING.pop((mint, w["address"]), None)
+def _copy_buy(s, w, sw, seen_ts, mint, age, sol_in, ncons, names, pos, in_coin, tok):
     if MIRROR:
         jt = sw.get("jt") or jup_token(mint)
         hp = honeypot(s, mint)
@@ -230,7 +281,10 @@ def on_swap(s, w, sw, seen_ts):
         with L: return skip(s, w, sf, mint, why, "safety", sw=sw)
     tk = (MIRROR_TICKET_SCOUT if w["tier"] == "scout" else MIRROR_TICKET_CORE) if MIRROR else LIVE_TICKET_USD
     tk = tk * (BOOST_X3 if ncons >= 3 else BOOST_X if ncons >= CONSENSUS_N else 1)
-    tk = min(tk, MAX_PER_COIN - in_coin)
+    fmult, fst = flip_info(s, w["address"]) if MIRROR else (1.0, {})
+    if fmult <= 0:
+        with L: return skip(s, w, None, mint, f"quick flipper: {fst['fast']}/{fst['n']} of his last round trips were under {FLIP_HOLD_S}s (median {fst['medianHoldS']:.0f}s), faster than we can copy", "flip", sw=sw)
+    tk = min(tk * fmult, MAX_PER_COIN - in_coin)
     with L:
         if tk < 1: return skip(s, w, sf, mint, f"already ${in_coin:.0f} in coin (cap ${MAX_PER_COIN})", "cap", sw=sw)
         if s["cash"] < tk: return skip(s, w, sf, mint, f"cash ${s['cash']:.2f} < ticket ${tk:.2f}", "cash", sw=sw)
@@ -240,6 +294,8 @@ def on_swap(s, w, sw, seen_ts):
         if qp and qp < pos["entry"]:
             with L: return skip(s, w, sf, mint, f"leader adding while our lot is red (now ${qp:.3g} < entry ${pos['entry']:.3g}); policy: add to winners only", "filter", sw=sw)
     time.sleep(max(0.0, EXEC_DELAY_S - (time.time() - seen_ts)))   # we would send EXEC_DELAY_S after detection
+    with L:
+        if tok["sold"]: return skip(s, w, sf, mint, "leader sold before our copy buy went out: buy cancelled (would have been a leftover bag)", "orphan", sw=sw)
     t_fill = time.time()
     px, impact = quote_buy(s, mint, tk) if FILL_SOURCE == "jupiter" else (None, None)
     fill = "jupiter" if px else "dexscreener"
@@ -266,6 +322,7 @@ def on_swap(s, w, sw, seen_ts):
         if vs_lead is not None and abs(vs_lead) < 500: lagstat(s, "vsLeaderPct", vs_lead)
         pos = next((p for p in s["positions"] if p["mint"] == mint), None)
         reason = dict(type=kind, wallets=names, consensus=ncons, ticket=round(tk, 2), lead=w["name"])
+        if fmult != 1.0: reason["flip"] = dict(mult=fmult, fast=fst["fast"], n=fst["n"], medianHoldS=fst["medianHoldS"])
         if pos:
             pos["qty"] += qty; pos["cost"] += tk; pos["buys"] += 1; pos["entry"] = pos["cost"] / (pos["qty"] / (1 - SLIP_FEE_SIDE))
             pos["lots"][w["address"]] = pos["lots"].get(w["address"], 0) + qty
@@ -280,7 +337,13 @@ def on_swap(s, w, sw, seen_ts):
                                        contrib={w["address"]: 1.0}, reason=reason, safety=sf, adds=[], fill=fill, leaderPx=lead_px_usd,
                                        vsLeaderPct=(round(vs_lead, 2) if vs_lead is not None else None), impactPct=impact, fillLagS=round(t_fill - sw["ts"], 2),
                                        mode=("MIRROR" if MIRROR else "FILTERED"), venue=sw.get("venue"), leaderSig=sw.get("sig"), leaderSol=round(sw["sol_in"], 4)))
-        log("BUY", sf["sym"], f"${tk:.2f}", kind, names, fill, f"vs leader {vs_lead:+.1f}%" if vs_lead is not None else "", f"lag {t_fill - sw['ts']:.1f}s")
+        log("BUY", sf["sym"], f"${tk:.2f}", kind, names, fill, f"vs leader {vs_lead:+.1f}%" if vs_lead is not None else "", f"lag {t_fill - sw['ts']:.1f}s", f"flip x{fmult}" if fmult != 1.0 else "")
+        if tok["sold"]:   # his sell landed while our buy was filling: exit our new lot right away instead of keeping an orphan bag
+            p = next((p for p in s["positions"] if p["mint"] == mint), None)
+            if p and p["qty"] > 0:
+                sell(s, p, min(1.0, qty / p["qty"]), "mirror sell", w["name"], lot=w["address"])
+                s["closes"][0]["note"] = "leader sold before our fill: exited right after the fill"
+                log("MIRROR SELL (after fill)", w["name"], sf["sym"], "leader sold while our buy was in flight")
 def pos_lead_add(s, w, mint, pos):
     """True when this buy is the same leader adding to a coin we already copied from him and policy limits adds."""
     return bool(pos and pos["lots"].get(w["address"], 0) > 0 and COPY_ADDS == "winners")
@@ -493,6 +556,10 @@ def main():
     s["skipped"] = [k for k in s["skipped"] if not k.get("reason", "").startswith("no DexScreener pool; coin 0s old")]
     s["wallets"] = [w for w in s["wallets"] if w["address"] not in DROP_WALLETS]
     s["mode"] = "MIRROR" if MIRROR else "FILTERED"; s.setdefault("mode_since", {})[s["mode"]] = s.get("mode_since", {}).get(s["mode"]) or int(time.time())  # old misleading rows; re-run via replay
+    if ORPHAN_SWEEP_V and (s.get("sweeps") or {}).get("orphan") != ORPHAN_SWEEP_V:
+        try: done = orphan_sweep(s); log("orphan sweep v%s:" % ORPHAN_SWEEP_V, done or "nothing to exit")
+        except Exception as e: log("orphan sweep", e); done = None
+        if done is not None and not s.pop("_sweepErrs", 0): s.setdefault("sweeps", {})["orphan"] = ORPHAN_SWEEP_V; save(s)
     for _ in range(4): threading.Thread(target=worker, args=(s,), daemon=True).start()
     threading.Thread(target=backup_poll, args=(s,), daemon=True).start()
     threading.Thread(target=watchdog, args=(s,), daemon=True).start()

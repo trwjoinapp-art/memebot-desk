@@ -83,3 +83,14 @@ if MIRROR:
 else:
     MIRROR_TICKET_CORE = MIRROR_TICKET_SCOUT = 0; MIRROR_MAX_HOLD_H = 0; MIRROR_NOQUOTE_MIN = 0
 DROP_WALLETS = ["7aMgK5L4qEQ8Nyv6ZzhZi2B82NSSRnwb2NGJnNagA46D"]   # dropped from the shortlist at 3:14 (parent); not watched
+# ---- v5 (Mohamed t29u, 1 Nov 11:22 PM): orphan guard + quick-flip sizing. PAPER ONLY.
+# Quick flips: a round trip = leader's first buy of a coin -> his first sell of it. Our detect + fill is ~3.4 s, so a leader who
+# is out within ~20 s leaves us buying his top and selling after him. 1 Nov evening: all 6 of Numer0's round trips under 15 s lost
+# money for us, his 72 s+ trades made the day (PEPE2 +$12.8). So we shrink, not skip: skipping him would also have skipped PEPE2.
+FLIP_HOLD_S = 20          # a round trip shorter than this counts as a quick flip
+FLIP_LOOKBACK = 6         # judge on the trader's last N completed round trips (any coin, copied or not)
+FLIP_MIN_N = 4            # need at least this many round trips before the rule kicks in
+FLIP_SHARE = 0.5          # rule on when >= this share of those round trips are quick flips
+FLIP_ACTION = "reduce"    # "reduce" (ticket x FLIP_MULT) | "skip" (don't copy while flipping) | "off"
+FLIP_MULT = 0.5
+ORPHAN_SWEEP_V = 1        # one-time startup cleanup: exit lots whose leader already sold everything (bump to re-run once)
