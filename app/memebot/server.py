@@ -1,5 +1,7 @@
 import json, os, http.server, socketserver, time, threading
 import desk_export as export2
+import ohlcv
+from urllib.parse import parse_qs
 DIR = os.path.dirname(os.path.abspath(__file__))
 _cache = {"t": 0, "body": b"{}"}
 _lock = threading.Lock()
@@ -23,9 +25,18 @@ class H(http.server.BaseHTTPRequestHandler):
         self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(body))); self.end_headers(); self.wfile.write(body)
     def do_GET(self):
-        p = self.path.split("?")[0]
+        p, _, qs = self.path.partition("?")
         if p in ("/", "/index.html"):
             self._send(200, open(os.path.join(DIR, "index.html"), "rb").read(), "text/html; charset=utf-8")
+        elif p == "/lwc.js":  # TradingView lightweight-charts v4.2.3 (Apache-2.0), vendored so the page needs no CDN
+            body = open(os.path.join(DIR, "lwc.js"), "rb").read()
+            self.send_response(200); self.send_header("Content-Type", "application/javascript; charset=utf-8")
+            self.send_header("Cache-Control", "public, max-age=86400"); self.send_header("Content-Length", str(len(body)))
+            self.end_headers(); self.wfile.write(body)
+        elif p == "/api/ohlcv":  # ?mint=<token>&tf=1m|5m|15m|1h[&pool=<pair>] -> cached GeckoTerminal candles
+            q = parse_qs(qs)
+            code, out = ohlcv.candles((q.get("mint") or q.get("addr") or [""])[0], (q.get("tf") or ["1m"])[0], (q.get("pool") or [None])[0])
+            self._send(code, json.dumps(out, separators=(",", ":")).encode(), "application/json")
         elif p == "/api/state":
             self._send(200, state(), "application/json")
         elif p == "/api/hype":
