@@ -1,11 +1,11 @@
 """persist.py · keeps the PAPER desk state durable on free hosts with ephemeral disks, and keeps free hosts awake.
-restore: pull desk_state.json + hype_state.json from a PRIVATE Hugging Face dataset repo (STATE_REPO), each only if newer than the local copy.
-loop:    push whichever of them changed there every SNAP_SEC (one commit); ping our own public URL so idle-sleep hosts stay up.
+restore: pull desk_state.json from a PRIVATE Hugging Face dataset repo (STATE_REPO), only if newer than the local copy.
+loop:    push it there when it changed, every SNAP_SEC (one commit); ping our own public URL so idle-sleep hosts stay up.
 Needs env HF_TOKEN + STATE_REPO (e.g. "mohamed-trader/memebot-desk-state"); without them it does nothing (state resets on restart).
 Never prints tokens. Touches no wallets/keys/signing: it only copies a JSON file."""
 import os, sys, json, time, shutil, urllib.request
 D = os.environ.get("DESK_DIR", "/workspace/desk")
-FILES = [os.path.join(D, "desk_state.json"), os.path.join(D, "hype_state.json")]   # copier desk + hype sniper (each optional remotely)
+FILES = [os.path.join(D, "desk_state.json")]   # copier desk only (hype sniper retired Nov 1 2026)
 TOKEN = os.environ.get("HF_TOKEN", "").strip(); REPO = os.environ.get("STATE_REPO", "").strip()
 SNAP = int(os.environ.get("SNAP_SEC", "300")); PING = int(os.environ.get("KEEPALIVE_SEC", "540"))
 def log(*a): print("[persist]", time.strftime("%H:%M:%S"), *a, flush=True)
@@ -31,7 +31,7 @@ def restore():
             r, l = fresh(p), fresh(SF)
             if r > l: shutil.copy(p, SF); log(f"restored {name} from {REPO} (remote {r:.0f} > local {l:.0f})")
             else: log(f"kept local {name} (local {l:.0f} >= remote {r:.0f})")
-        except Exception as e:   # e.g. hype_state.json not pushed yet -> start fresh
+        except Exception as e:   # e.g. nothing pushed yet -> start fresh
             log(f"restore {name} skipped:", type(e).__name__, str(e).replace(TOKEN, "<HF_TOKEN>")[:160])
 def public_url():
     u = os.environ.get("PUBLIC_URL") or os.environ.get("RENDER_EXTERNAL_URL") or ""

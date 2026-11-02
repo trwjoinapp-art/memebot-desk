@@ -64,11 +64,5 @@ Existing: at, wallet, sym, reason (human string), logo, url.
 - `backtest.auditVersion`, `backtest.gates`, `backtest.hygiene`, `backtest.srcCounts`, `backtest.winners[]` {sym, mint, src}
 - `cfg.fillSource`, `cfg.prioFeeSol`, `cfg.copyAdds`; `cfg.delay` now = EXEC_DELAY_S (1.5s after detection)
 
-## v4 additions: Hype Sniper (second paper strategy, own $100)
-`hype` key in /api/state (also served alone at GET /api/hype, 2s cache). Absent/`live:false` if hype.py has not written `desk/hype_state.json`.
-- live, stale (no write for >180s), asOf, lastPoll, started/startedAt, startUsd (100), cash, equity, pnl, pnlPct, realized, unreal, trades, wins, losses, solUsd, pool
-- open[]: mint, sym, name, icon, score, cats{social,narrative,traction,momentum,attention,penalty}, bd[[cat,label,pts]], entry, last, peak, x, cost, cost0, value, pnl, realized, tpDone, tpPx, stopPx, trailPx, noPrice, held, opened/openedAt, entryMcap, impactPct, roundTripPct, chain{mintAuth,freezeAuth,token2022,badExt,topPct,top10Pct}, xinfo{handle,followers,kind,views,likes}, spark[], sells[], links{pump,dex,solscan,x,web,tg}
-- closes[] (≤40): mint, sym, icon, opened, closed, closedAt, held, entry, exit, peak, cost, pnl, pct, why, score, cats, sells, links
-- decisions[] (≤60, newest first): ts, at, action (enter|skip), mint, sym, name, icon, score, cats, bd, reason, mcap, traders5m, x, twitter, links
-- candidates[] (≤25, by score): mint, sym, name, icon, score, cats, bd, age (s), mcap, liq, holders, traders5m, buy5m, sell5m, chg5m, x, status, why, sources, launchpad, links
-- sources{name:{ok,nOk,nErr,lastOk,lastErr,err}}, metas[[word,count]], stats{seen,scored,deep,entered,skipped}, series[[ts,equity]], cfg (HYPE thresholds + hype_handles/hype_keywords)
+## Hype Sniper (removed Nov 1 2026)
+The `hype` key and GET /api/hype are gone; the desk runs the copier only.

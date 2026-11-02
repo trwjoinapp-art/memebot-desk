@@ -70,7 +70,6 @@ def build():
                               coins=bt["coins"], delayPen=bt["delay_pen"],
                               compare=[{k: c[k] for k in ("rule", "desc", "start", "final", "pnl", "x", "trades", "winRate", "pf", "maxDD", "put", "exits")} for c in bt["compare"]])
                          if bt else None))
-    out["hype"] = hype()
     if not st: out.update(live=False); return out
     cfg = dict(st["cfg"]); slip = cfg["slip"]
     cfg.setdefault("tp_mult", 2.0); cfg.setdefault("tp_frac", 0.5); cfg.setdefault("trail_pct", 30)
@@ -118,45 +117,3 @@ def build():
                              skipped=ts_.get(a, {}).get("skipped", 0), pnl=round(ts_.get(a, {}).get("pnl", 0), 4), lastSeenTs=ts_.get(a, {}).get("last") or None,
                              lastSeen=t(ts_[a]["last"]) if ts_.get(a, {}).get("last") else None) for a, w in names.items()])
     return out
-
-# ---------------------------------------------------------------- hype sniper (strategy 2, own $100 paper balance)
-def _links(mint, tw=None, web=None, tg=None):
-    return dict(pump=f"https://pump.fun/coin/{mint}" if mint.endswith("pump") else None, dex=f"https://dexscreener.com/solana/{mint}",
-                solscan=f"https://solscan.io/token/{mint}", x=tw or None, web=web or None, tg=tg or None)
-def hype():
-    s = J(f"{D}/hype_state.json")
-    if not s or s.get("strategy") != "hype": return dict(live=False)
-    now = time.time(); c = s.get("cfg") or {}; slip = 0.02
-    start = float(s.get("startUsd") or c.get("start_usd") or 100)
-    tp, trail, stop = float(c.get("tp_mult", 2)), float(c.get("trail_pct", 30)), float(c.get("stop_pct", 35))
-    pos = []
-    for p in s.get("positions") or []:
-        val = p["qty"] * p["last"] * (1 - slip); x = p["last"] / p["entry"] if p.get("entry") else 0
-        pos.append(dict(mint=p["mint"], sym=p.get("sym"), name=p.get("name"), icon=p.get("icon"), score=p.get("score"), cats=p.get("cats"), bd=p.get("bd"),
-                        opened=p["opened"], openedAt=t(p["opened"]), held=int(now - p["opened"]), entry=p["entry"], last=p["last"], peak=p.get("peak"),
-                        x=round(x, 3), value=round(val, 4), cost=round(p["cost"], 4), cost0=p.get("cost0"), realized=round(p.get("realized", 0), 4),
-                        pnl=round(val + p.get("realized", 0) - (p.get("cost0") or p["cost"]), 4), tpDone=bool(p.get("tpDone")),
-                        tpPx=p["entry"] * tp, stopPx=p["entry"] * (1 - stop / 100), trailPx=p.get("trailPx") if p.get("tpDone") else None,
-                        impactPct=p.get("impactPct"), roundTripPct=p.get("roundTripPct"), entryMcap=p.get("entryMcap"), chain=p.get("chain"),
-                        xinfo=p.get("x"), spark=[h[1] for h in (p.get("hist") or [])[-60:]], noPrice=bool(p.get("noquote_since")),
-                        links=_links(p["mint"], p.get("twitter"), p.get("website"), p.get("telegram")), sells=p.get("sells") or []))
-    closes = s.get("closes") or []
-    eq = s["cash"] + sum(p["value"] for p in pos)
-    ser = s.get("equity") or []
-    step = max(1, len(ser) // 160)
-    wins = sum(1 for x in closes if x.get("pnl", 0) > 0)
-    for x in closes: x["closedAt"] = t(x["closed"]); x["held"] = x["closed"] - x["opened"]; x["links"] = _links(x["mint"])
-    for d in s.get("decisions") or []: d["at"] = t(d["ts"]); d["links"] = _links(d["mint"], d.get("twitter"))
-    cands = s.get("candidates") or []
-    for k in cands: k["links"] = _links(k["mint"], k.get("twitter"), k.get("website"), k.get("telegram"))
-    lp = s.get("last_poll") or 0
-    return dict(live=True, asOf=t(now), lastPoll=lp, stale=(now - lp) > 120, startUsd=start, cash=round(s["cash"], 4), equity=round(eq, 4),
-                pnl=round(eq - start, 4), pnlPct=round((eq / start - 1) * 100, 2), realized=round(sum(x.get("pnl", 0) for x in closes), 4),
-                unreal=round(sum(p["value"] - p["cost"] for p in pos), 4), trades=len(closes), wins=wins, losses=len(closes) - wins,
-                open=pos, closes=closes[:40], decisions=(s.get("decisions") or [])[:60], candidates=cands[:25],
-                sources=s.get("sources") or {}, metas=s.get("metas") or [], stats=s.get("stats") or {}, pool=s.get("pool"), solUsd=s.get("solUsd"),
-                started=s.get("started"), startedAt=t(s["started"]) if s.get("started") else None,
-                series=[[a, b] for a, b in ser[::step]] + ([ser[-1]] if ser and (len(ser) - 1) % step else []),
-                cfg={k: c.get(k) for k in ("ticket_usd", "max_open", "min_score", "tp_mult", "tp_frac", "trail_pct", "stop_pct", "max_hold_h",
-                                           "max_age_h", "min_traders_5m", "min_mcap", "max_mcap", "min_liq", "max_top10_pct", "max_top1_pct",
-                                           "max_dev_pct", "max_roundtrip_loss_pct", "copycat_ratio", "hype_handles", "hype_keywords")})
