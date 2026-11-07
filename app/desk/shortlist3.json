@@ -1,6 +1,6 @@
 {
 "version": 3,
-"generated": 1793952891,
+"generated": 1794038655,
 "sol_usd": 94.47,
 "helius_credits": 20770,
 "candidates": 203,
@@ -21,57 +21,54 @@
 },
 "delay_pen": 0.056,
 "slip": 0.02,
-"shortlist": [],
-"scouts": [
+"shortlist": [
 {
 "address": "A3W8psibkTUvjxs4LRscbnjux6TFDXdvD4m4GsGpQ2KJ",
 "name": "Numer0 (trench/arc) \u00b7 @Numerooo0",
-"src": "Solana Tracker KOL 30d #15: $80,438 realized | Solana Tracker KOL 7d #55: $6,954 realized | current desk (scout)",
-"buys": 307,
-"coins": 144,
-"put_usd": 3069.9999999999995,
-"got_usd": 3728.3740214141294,
-"copy_x": 1.4134203926441493,
-"raw_got_usd": 4339.200605417538,
-"x_real": 1.2144540786365243,
-"x_ex_best": 1.0822627255643005,
-"win": 0.4236111111111111,
-"pf": 1.85885901509642,
-"green": 0.4642857142857143,
+"src": "Solana Tracker KOL 30d #18: $63,040 realized | Solana Tracker KOL 7d #55: $6,438 realized | current desk (core)",
+"buys": 267,
+"coins": 135,
+"put_usd": 2670.0,
+"got_usd": 3417.037892654237,
+"copy_x": 1.4904047715262347,
+"raw_got_usd": 3979.3807399750467,
+"x_real": 1.2797894729042087,
+"x_ex_best": 1.1283115746043868,
+"win": 0.45925925925925926,
+"pf": 2.1157624270841633,
+"green": 0.5,
 "active_days": 28,
-"median_hold_s": 115,
-"n_holds": 381,
+"median_hold_s": 111,
+"n_holds": 389,
 "best_coin": "64oAuE88tNP7KsSyaiJTKGP4sWmLMFGWLUs9eBTLYgCp",
-"best_coin_usd": 408.2953356986563,
-"one_coin_share": 0.6201571180188333,
+"best_coin_usd": 408.29533569865623,
+"one_coin_share": 0.5465523766779441,
 "days": 30.0,
 "capped": false,
 "txs": 2000,
-"buys_per_day": 10.2,
+"buys_per_day": 8.9,
 "kolscan_30d_sol": null,
-"score": 0.0436,
-"drop": [
-"1.08x without best coin < 1.1x"
-],
+"score": 0.0817,
+"drop": [],
 "flags": [
-"64% of pump entries < $30k mcap (not copied)"
+"66% of pump entries < $30k mcap (not copied)"
 ],
-"tier": "scout",
+"tier": "core",
 "best_coin_sym": "TikTok",
-"idle_h": 0.3,
-"entry_mcap_med": 20044,
-"snipe_share": 0.64,
+"idle_h": 0.6,
+"entry_mcap_med": 16828,
+"snipe_share": 0.66,
 "zero_share": 0.28,
-"transfer_in_sell_share": 0.05,
-"avg_buy_usd": 182.8,
-"x7": 1.025,
-"coins7": 24,
+"transfer_in_sell_share": 0.07,
+"avg_buy_usd": 197.9,
+"x7": 0.98,
+"coins7": 30,
 "x": "@Numerooo0",
 "named": true,
 "srcs": [
-"Solana Tracker KOL 30d #15: $80,438 realized",
-"Solana Tracker KOL 7d #55: $6,954 realized",
-"current desk (scout)"
+"Solana Tracker KOL 30d #18: $63,040 realized",
+"Solana Tracker KOL 7d #55: $6,438 realized",
+"current desk (core)"
 ],
 "platforms": [
 "SolanaTracker"
@@ -79,33 +76,34 @@
 "history_src": "SolanaTracker trades",
 "hist_days": 30.0,
 "lead30": {
-"realized_usd": 64312,
-"coins": 291,
-"closed": 289,
-"win": 0.626,
-"trades_per_day": 47.5
+"realized_usd": 63974,
+"coins": 278,
+"closed": 276,
+"win": 0.656,
+"trades_per_day": 42.6
 },
 "lead7": {
-"realized_usd": 7371,
-"coins": 78,
-"closed": 76,
-"win": 0.829,
-"trades_per_day": 37.6
+"realized_usd": 6617,
+"coins": 84,
+"closed": 82,
+"win": 0.805,
+"trades_per_day": 39.3
 },
 "why": [
-"Solana Tracker KOL 30d #15: $80,438 realized",
-"nightly 2026-11-06 re-verify: copy after 5.6% delay + 2% fees: 1.21x over 30.0d, 1.08x without best coin, last 7d 1.025x; pf 1.86; soft drop: 1.08x without best < 1.1x; idle 0.3h; still scout under SCOUT_MIN gates; on ST 30d #15 and 7d #55"
+"Solana Tracker KOL 30d #18: $63,040 realized",
+"nightly 2026-11-07 re-verify: copy after 5.6% delay + 2% fees: 1.28x over 30.0d, 1.13x without best coin, last 7d 0.98x; pf 2.12; idle 0.6h; promoted scout\u2192core (clears MIN_X_REAL/MIN_X_EX_BEST/MIN_PF, empty drop); on ST 30d #18 and 7d #55; meets 7d+30d leaderboard rule"
 ],
 "sources": [
-"Solana Tracker KOL 30d #15: $80,438 realized",
-"Solana Tracker KOL 7d #55: $6,954 realized",
-"current desk (scout)"
+"Solana Tracker KOL 30d #18: $63,040 realized",
+"Solana Tracker KOL 7d #55: $6,438 realized",
+"current desk (core)"
 ],
 "st": {},
 "st_tags": [],
 "handle": "@Numerooo0"
 }
 ],
+"scouts": [],
 "all": [
 {
 "address": "8in87YFhB3BYkoQNdvbFL4bRDKtw2Bv4Ma499Yj4zB85",
@@ -16946,7 +16944,7 @@
 "dextrading": 30,
 "current_desk": 6
 },
-"audit": "scout4/5 named-trader audit 1 Nov 2026 \u00b7 v5 1 Nov 11:38 PM EST: Pavlo and 8DN7 removed (idle), no replacement passed the gates \u00b7 nightly 2026-11-06: dropped 8in8\u2026zB85 (unlabeled) 8in87YFhB3BYkoQNdvbFL4bRDKtw2Bv4Ma499Yj4zB85 from core (real copy 1.16x < 1.2x, 1.05x without best coin < 1.1x, idle 64.8h); kept Numer0 (trench/arc) \u00b7 @Numerooo0 A3W8psibkTUvjxs4LRscbnjux6TFDXdvD4m4GsGpQ2KJ as sole scout (1.21x real / 1.08x ex-best, soft drop under SCOUT_MIN, idle 0.3h). No replacement added.",
+"audit": "scout4/5 named-trader audit 1 Nov 2026 \u00b7 v5 1 Nov 11:38 PM EST: Pavlo and 8DN7 removed (idle), no replacement passed the gates \u00b7 nightly 2026-11-06: dropped 8in8\u2026zB85 (unlabeled) 8in87YFhB3BYkoQNdvbFL4bRDKtw2Bv4Ma499Yj4zB85 from core (real copy 1.16x < 1.2x, 1.05x without best coin < 1.1x, idle 64.8h); kept Numer0 (trench/arc) \u00b7 @Numerooo0 A3W8psibkTUvjxs4LRscbnjux6TFDXdvD4m4GsGpQ2KJ as sole scout (1.21x real / 1.08x ex-best, soft drop under SCOUT_MIN, idle 0.3h). No replacement added. \u00b7 nightly 2026-11-07: promoted Numer0 (trench/arc) \u00b7 @Numerooo0 A3W8psibkTUvjxs4LRscbnjux6TFDXdvD4m4GsGpQ2KJ scout\u2192core (real copy 1.28x, 1.13x without best, pf 2.12, idle 0.6h, empty drop); board-pass 7d+30d West/Euris/jester/Donuttcrypto all failed replay; no adds. ST calls 10.",
 "v5_slots": {
 "date": "1 Nov 2026 11:38 PM EST",
 "removed": [
