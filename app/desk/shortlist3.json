@@ -1,7 +1,7 @@
 {
 "version": 3,
-"generated": 1794038655,
-"sol_usd": 94.47,
+"generated": 1794125419,
+"sol_usd": 89.056,
 "helius_credits": 20770,
 "candidates": 203,
 "sources": [
@@ -21,54 +21,58 @@
 },
 "delay_pen": 0.056,
 "slip": 0.02,
-"shortlist": [
+"shortlist": [],
+"scouts": [
 {
 "address": "A3W8psibkTUvjxs4LRscbnjux6TFDXdvD4m4GsGpQ2KJ",
 "name": "Numer0 (trench/arc) \u00b7 @Numerooo0",
-"src": "Solana Tracker KOL 30d #18: $63,040 realized | Solana Tracker KOL 7d #55: $6,438 realized | current desk (core)",
-"buys": 267,
-"coins": 135,
-"put_usd": 2670.0,
-"got_usd": 3417.037892654237,
-"copy_x": 1.4904047715262347,
-"raw_got_usd": 3979.3807399750467,
-"x_real": 1.2797894729042087,
-"x_ex_best": 1.1283115746043868,
-"win": 0.45925925925925926,
-"pf": 2.1157624270841633,
-"green": 0.5,
-"active_days": 28,
+"src": "Solana Tracker KOL 30d #20: $58,033 realized | Solana Tracker KOL 7d #55: $5,842 realized | current desk (scout)",
+"buys": 237,
+"coins": 125,
+"put_usd": 2370.0,
+"got_usd": 2611.6242697048096,
+"copy_x": 1.2828769134829694,
+"raw_got_usd": 3040.418284954638,
+"x_real": 1.1019511686518184,
+"x_ex_best": 1.0484485105363641,
+"win": 0.448,
+"pf": 1.4067612016593392,
+"green": 0.46153846153846156,
+"active_days": 26,
 "median_hold_s": 111,
 "n_holds": 389,
-"best_coin": "64oAuE88tNP7KsSyaiJTKGP4sWmLMFGWLUs9eBTLYgCp",
-"best_coin_usd": 408.29533569865623,
-"one_coin_share": 0.5465523766779441,
+"best_coin": "FGkCj28xhabWTYg9QyzACvs4NsN6LUyesP6EwiHepump",
+"best_coin_usd": 128.2547550497177,
+"one_coin_share": 0.5308024529423533,
 "days": 30.0,
 "capped": false,
 "txs": 2000,
-"buys_per_day": 8.9,
+"buys_per_day": 7.9,
 "kolscan_30d_sol": null,
-"score": 0.0817,
-"drop": [],
-"flags": [
-"66% of pump entries < $30k mcap (not copied)"
+"score": 0.0202,
+"drop": [
+"real copy 1.10x < 1.2x",
+"1.05x without best coin < 1.1x"
 ],
-"tier": "core",
-"best_coin_sym": "TikTok",
-"idle_h": 0.6,
-"entry_mcap_med": 16828,
-"snipe_share": 0.66,
-"zero_share": 0.28,
+"flags": [
+"68% of pump entries < $30k mcap (not copied)"
+],
+"tier": "scout",
+"best_coin_sym": "UHI",
+"idle_h": 24.0,
+"entry_mcap_med": 14976,
+"snipe_share": 0.68,
+"zero_share": 0.27,
 "transfer_in_sell_share": 0.07,
-"avg_buy_usd": 197.9,
-"x7": 0.98,
-"coins7": 30,
+"avg_buy_usd": 193.7,
+"x7": 0.967,
+"coins7": 31,
 "x": "@Numerooo0",
 "named": true,
 "srcs": [
-"Solana Tracker KOL 30d #18: $63,040 realized",
-"Solana Tracker KOL 7d #55: $6,438 realized",
-"current desk (core)"
+"Solana Tracker KOL 30d #20: $58,033 realized",
+"Solana Tracker KOL 7d #55: $5,842 realized",
+"current desk (scout)"
 ],
 "platforms": [
 "SolanaTracker"
@@ -76,34 +80,33 @@
 "history_src": "SolanaTracker trades",
 "hist_days": 30.0,
 "lead30": {
-"realized_usd": 63974,
-"coins": 278,
-"closed": 276,
-"win": 0.656,
-"trades_per_day": 42.6
+"realized_usd": 47378,
+"coins": 266,
+"closed": 263,
+"win": 0.654,
+"trades_per_day": 39.2
 },
 "lead7": {
-"realized_usd": 6617,
-"coins": 84,
-"closed": 82,
-"win": 0.805,
-"trades_per_day": 39.3
+"realized_usd": 6282,
+"coins": 81,
+"closed": 78,
+"win": 0.808,
+"trades_per_day": 38.4
 },
 "why": [
-"Solana Tracker KOL 30d #18: $63,040 realized",
-"nightly 2026-11-07 re-verify: copy after 5.6% delay + 2% fees: 1.28x over 30.0d, 1.13x without best coin, last 7d 0.98x; pf 2.12; idle 0.6h; promoted scout\u2192core (clears MIN_X_REAL/MIN_X_EX_BEST/MIN_PF, empty drop); on ST 30d #18 and 7d #55; meets 7d+30d leaderboard rule"
+"Solana Tracker KOL 30d #20: $58,033 realized",
+"nightly 2026-11-08 re-verify: copy after 5.6% delay + 2% fees: 1.10x over 30.0d, 1.05x without best coin, last 7d 0.967x; pf 1.41; soft drop: real copy 1.10x < 1.2x, 1.05x without best < 1.1x; idle 24.0h; demoted core\u2192scout (still clears SCOUT_MIN gates); on ST 30d #20 and 7d #55; meets 7d+30d leaderboard rule"
 ],
 "sources": [
-"Solana Tracker KOL 30d #18: $63,040 realized",
-"Solana Tracker KOL 7d #55: $6,438 realized",
-"current desk (core)"
+"Solana Tracker KOL 30d #20: $58,033 realized",
+"Solana Tracker KOL 7d #55: $5,842 realized",
+"current desk (scout)"
 ],
 "st": {},
 "st_tags": [],
 "handle": "@Numerooo0"
 }
 ],
-"scouts": [],
 "all": [
 {
 "address": "8in87YFhB3BYkoQNdvbFL4bRDKtw2Bv4Ma499Yj4zB85",
